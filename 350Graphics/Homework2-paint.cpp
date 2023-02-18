@@ -3,6 +3,7 @@ rectangles, and points */
 
 #include <stdlib.h>
 #include <GL/glut.h>
+#include <iostream>
 // definitions
 #define NULL 0
 #define LINE 1
@@ -202,12 +203,12 @@ void mouse(int btn, int state, int x, int y)
 int pick(int x, int y)
 {
     y = wh - y;
-    if (y < wh - ww / 10) return 0;
-    else if (x < ww / 10) return LINE;
-    else if (x < ww / 5) return RECTANGLE;
-    else if (x < 3 * ww / 10) return TRIANGLE;
-    else if (x < 2 * ww / 5) return POINTS;
-    else if (x < ww / 2) return TEXT;
+    if (x > ww / 10) return 0;
+    else if (y > wh - ww / 10) return LINE;
+    else if (y > wh - ww / 10 -  ww / 10) return RECTANGLE;
+    else if (y > wh - ww / 10 - 2*ww / 10) return TRIANGLE;
+    else if (y > wh - ww / 10 - 3*ww / 10) return POINTS;
+    else if (y > wh - ww / 10 - 4*ww / 10) return TEXT;
     else return 0;
 }
 
@@ -296,9 +297,9 @@ void display()
     glEnd();
 
     glBegin(GL_TRIANGLES);
-    glVertex2i(ww/100, wh-ww/10-ww/11);
-    glVertex2i(((ww /100+ww/10)-ww/100)/2, wh - ww / 10-ww/50);
-    glVertex2i(ww/100+ww/13, wh - ww / 10 - ww / 11);
+    glVertex2i(ww/100, wh-ww/10-ww/5.5);
+    glVertex2i(((ww /100+ww/10)-ww/100)/2, wh - ww / 10-ww/9);
+    glVertex2i(ww/100+ww/13, wh - ww / 10 - ww / 5.5);
     glEnd();
 
     glPointSize(3.0);
