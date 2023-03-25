@@ -321,7 +321,7 @@ int main(int argc, char** argv)
 
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
-    glutCreateWindow("Homework2-paint Austin Hartley");
+    glutCreateWindow("paint2");
     glutDisplayFunc(display);
 
     c_menu = glutCreateMenu(color_menu);

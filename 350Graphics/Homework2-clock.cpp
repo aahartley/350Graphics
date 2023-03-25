@@ -211,7 +211,7 @@ int main(int argc, char** argv)
 
 	glutDisplayFunc(display);
 	glutReshapeFunc(reshape);
-	glutTimerFunc(100, timer, 1);
+	glutTimerFunc(10, timer, 1);
 
 	glutMainLoop();
 
