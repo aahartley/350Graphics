@@ -3,7 +3,7 @@
 //------ global variables and constants------------
 GLsizei ww = 512;
 GLsizei wh = 512;
-GLfloat left, right, bottom, top, near = 5, far = 20;
+GLfloat left, right, bottom, top, _near = 5, _far = 20;
 const float REGION_DIM = 4;
 //const GLfloat DtoR = 0.017453;
 GLfloat fov = 45.0, aspect = 1;
@@ -81,7 +81,7 @@ void init(void)
 	}
 
 	//----------- just use one of the following -------------------
-	glFrustum(left, right, bottom, top, near, far);	// perspective projection with frustum. use it as same time in reshape
+	glFrustum(left, right, bottom, top, _near, _far);	// perspective projection with frustum. use it as same time in reshape
 	//gluPerspective(fov, aspect, near, far);
 
 	glMatrixMode(GL_MODELVIEW);
@@ -109,7 +109,7 @@ void reshape(GLsizei w, GLsizei h)
 	}
 
 	// ------------------------ just use one of the following -----------------------
-	glFrustum(left, right, bottom, top, near, far);	// perspective projection with frustum. use it as same time in init
+	glFrustum(left, right, bottom, top, _near, _far);	// perspective projection with frustum. use it as same time in init
 	//gluPerspective(fov, aspect, near, far);
 
 	glMatrixMode(GL_MODELVIEW);
@@ -177,8 +177,8 @@ void keys(unsigned char k, int x, int y)
 		rho += dRho;
 	else if (k == 'r' || k == 'R')
 	{
-		near = 5;
-		far = 20;
+		_near = 5;
+		_far = 20;
 		theta = 30;
 		phi = 60;
 		rho = 10;
@@ -212,9 +212,9 @@ void specialKeys(int k, int x, int y)
 			phi += dPhi;
 	}
 }
-
-int main()
+int main(int argc, char** argv)
 {
+	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB); // GLUT_DOUBLE work with glutPostRedisplay
 	glutInitWindowSize(ww, wh);	// default size 300 by 300
 	glutInitWindowPosition(100, 100); // defualt at (0, 0)

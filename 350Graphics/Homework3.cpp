@@ -1,9 +1,11 @@
 #include "myObjects2023.cpp"
 
-//------ global variables and constants------------
-GLsizei ww = 512;
-GLsizei wh = 512;
-GLfloat left, right, bottom, top, near = 5, far = 20;
+#define DtoR 0.017453
+
+GLsizei ww = 500, wh = 500;
+GLfloat increment = 0.01;
+
+
 const float REGION_DIM = 4;
 //const GLfloat DtoR = 0.017453;
 GLfloat fov = 45.0, aspect = 1;
@@ -11,21 +13,22 @@ GLfloat theta = 30, phi = 60, rho = 10;
 GLfloat dTheta = 5, dPhi = 5, dRho = 0.5;
 GLfloat alpha = 0, beta = 0, gama = 0;
 GLfloat dAlpha = 5, dBeta = 5, dGama = 5;
-GLfloat a = 0.25, b = 0.5, c = 1.0;
+GLfloat a = 1.0, b = 1.0, c = 1.0;
 GLfloat dA = 0.1, dB = 0.1, dC = 0.1;
 GLfloat direction = 1.0;
 
-//----- prototypes ----------
-void display(void);
-void init(void);
-void reshape(GLsizei w, GLsizei h);
-void keys(unsigned char k, int x, int y);
-void mouse(int, int, int, int);
-void idle(void);
+GLfloat left, right, bottom, top, _near = 5, _far = 20;
 
 
-void display(void)
+float r1 = 0.5;
+float r2 = 0.7;
+float r3 = 0.9;
+
+
+void display()
 {
+	glClearColor(1.0, 1.0, 1.0, 1.0);	// background color; default black; (R, G, B, Opacity)
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
 
@@ -33,60 +36,47 @@ void display(void)
 	glLoadIdentity();
 	gluLookAt(rho * sin(theta * DtoR) * sin(phi * DtoR), rho * cos(phi * DtoR), rho * cos(theta * DtoR) * sin(phi * DtoR), 0, 0, 0, 0, 1, 0);
 
-	axes(REGION_DIM);
+	//gluLookAt(8, 8, 12, 0, 0, 0, 0, 1, 0); // for perspective view
+	axes(7.5);
 
-	glRotatef(alpha, 1, 0, 0);
-	glRotatef(beta, 0, 1, 0);
+	//----------------------- xy ring ---------------------
+   // glPushMatrix();
+	glRotatef(alpha, 0, 1, 0);
+
+	glColor3f(1, 0.0, 0.0);
+	glutSolidTorus((r1/6)*a, (r1*2)*b, 30, 30);
+	glColor3f(0.9, 0, 0);
+	glutWireTorus(((r1/6)+0.01)*a, ((r1*2)+0.01)*b, 30, 30);
+	//glPopMatrix();
+	//-----------------------------------------------------
+	glRotatef(beta, 1, 0, 0);
+
+		//----------------------- xz ring ---------------------
+	glPushMatrix();
+	glRotatef(90, 1, 0, 0);
+	glColor3f(0, 1, 0);
+	glutSolidTorus((r2 / 6)*a, (r2 * 2)*b, 30, 30);
+	glColor3f(0, 0.9, 0);
+	glutWireTorus(((r2 / 6) + 0.01)*a, ((r2 * 2) + 0.01)*b, 30, 30);
+	glPopMatrix();
+	//-----------------------------------------------------
+		//----------------------- yz ring ---------------------
+	glPushMatrix();
 	glRotatef(gama, 0, 0, 1);
+	glRotatef(90, 0, 1, 0);
+	glColor3f(0, 0.0, 1);
+	glutSolidTorus((r3 / 6)*a, (r3 * 2)*b, 30, 30);
+	glColor3f(0, 0, 0.9);
+	glutWireTorus(((r3 / 6) + 0.01)*a, ((r3 * 2) + 0.01)*b, 30, 30);
+    glPopMatrix();
 
-	glRotatef(-90, 1, 0, 0);
+	//-----------------------------------------------------
 
-	//----- draw in FILL mode -----------------
-	glColor3f(1, 0, 0);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	glutSolidTorus(0.5 * a, 2 * b, 30, 30);
-	//sphere(a, 30, 60);
-
-	//------- draw in LINE mode -----------
-	glColor3f(1, 1, 0);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	glutWireTorus(0.5 * a * 1.02, 2 * b * 1.02, 30, 30);
-	//sphere(a*1.005, 30, 60);
 	glutSwapBuffers();
-	glutPostRedisplay();	// work with GLUT_DOUBLE
+	glutPostRedisplay();
 }
 
-void init(void)
-{
-	float ratio = ww * 1.0 / (wh * 1.0);
-
-	glClearColor(0.5, 0.5, 0.5, 1.0);	// background color; default black; (R, G, B, Opacity)
-	glColor3f(0, 1, 1);	// drawing color; default white
-
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	if (ratio >= 1)
-	{
-		left = -1.0 * REGION_DIM * ratio;
-		right = REGION_DIM * ratio;
-		bottom = -1.0 * REGION_DIM;
-		top = REGION_DIM;
-	}
-	else
-	{
-		left = -1.0 * REGION_DIM;
-		right = REGION_DIM;
-		bottom = -1.0 * REGION_DIM / ratio;
-		top = REGION_DIM / ratio;
-	}
-
-	//----------- just use one of the following -------------------
-	glFrustum(left, right, bottom, top, near, far);	// perspective projection with frustum. use it as same time in reshape
-	//gluPerspective(fov, aspect, near, far);
-
-	glMatrixMode(GL_MODELVIEW);
-}
-
+// ============================= perspective view ====================================
 void reshape(GLsizei w, GLsizei h)
 {
 	float ratio = w * 1.0 / (h * 1.0);
@@ -109,7 +99,7 @@ void reshape(GLsizei w, GLsizei h)
 	}
 
 	// ------------------------ just use one of the following -----------------------
-	glFrustum(left, right, bottom, top, near, far);	// perspective projection with frustum. use it as same time in init
+	glFrustum(left, right, bottom, top, _near, _far);	// perspective projection with frustum. use it as same time in init
 	//gluPerspective(fov, aspect, near, far);
 
 	glMatrixMode(GL_MODELVIEW);
@@ -120,25 +110,55 @@ void reshape(GLsizei w, GLsizei h)
 	wh = h;
 }
 
+void init(void)
+{
+	float ratio = ww * 1.0 / (wh * 1.0);
+
+	glClearColor(1.0, 1.0, 1.0, 1.0);	// background color; default black; (R, G, B, Opacity)
+	glColor3f(1, 1, 1);	// drawing color; default white
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	if (ratio >= 1)
+	{
+		left = -1.0 * REGION_DIM * ratio;
+		right = REGION_DIM * ratio;
+		bottom = -1.0 * REGION_DIM;
+		top = REGION_DIM;
+	}
+	else
+	{
+		left = -1.0 * REGION_DIM;
+		right = REGION_DIM;
+		bottom = -1.0 * REGION_DIM / ratio;
+		top = REGION_DIM / ratio;
+	}
+
+	//----------- just use one of the following -------------------
+	glFrustum(left, right, bottom, top, _near, _far);	// perspective projection with frustum. use it as same time in reshape
+	//gluPerspective(fov, aspect, near, far);
+
+	glMatrixMode(GL_MODELVIEW);
+}
+// =================================================================================
+
 void idle()
 {
-	alpha += 0.1;
-	beta += 0.1;
-	gama += 0.1;
 
-	if (alpha >= 360)
-		alpha -= 360;
-
-	if (beta >= 360)
-		beta -= 360;
-
-	if (gama >= 360)
-		gama -= 360;
-
+	alpha += 14.92 * increment;
+	if (alpha > 360) alpha -= 360;
 	glutPostRedisplay();
+
+	beta += 14.92 * increment;
+	if (beta > 360) beta -= 360;
+	glutPostRedisplay();
+
+	gama += 14.92 * increment;
+	if (gama > 360) gama -= 360;
+	glutPostRedisplay();
+
+
 }
-
-
 void mouse(int button, int state, int x, int y)
 {
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
@@ -177,8 +197,8 @@ void keys(unsigned char k, int x, int y)
 		rho += dRho;
 	else if (k == 'r' || k == 'R')
 	{
-		near = 5;
-		far = 20;
+		_near = 5;
+		_far = 20;
 		theta = 30;
 		phi = 60;
 		rho = 10;
@@ -213,14 +233,15 @@ void specialKeys(int k, int x, int y)
 	}
 }
 
-int main()
-{
-	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB); // GLUT_DOUBLE work with glutPostRedisplay
-	glutInitWindowSize(ww, wh);	// default size 300 by 300
-	glutInitWindowPosition(100, 100); // defualt at (0, 0)
-	glutCreateWindow("Austin Hartley");
-	init();
 
+
+int main(int argc, char** argv)
+{
+	glutInit(&argc, argv);
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+	glutInitWindowSize(ww, wh);
+	glutInitWindowPosition(100,100);
+	glutCreateWindow("Austin Hartley");
 	glutDisplayFunc(display);
 	glutReshapeFunc(reshape);
 	glutMouseFunc(mouse);
@@ -231,3 +252,4 @@ int main()
 	glutMainLoop();
 	return 1;
 }
+

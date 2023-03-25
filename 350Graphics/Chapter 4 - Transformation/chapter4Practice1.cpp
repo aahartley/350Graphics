@@ -5,7 +5,7 @@
 //------ global variables and constants------------
 GLsizei ww = 512;
 GLsizei wh = 512;
-GLfloat left, right, bottom, top, near = 5, far = 20;
+GLfloat left, right, bottom, top, _near = 5,_far = 20;
 const float REGION_DIM = 4;
 //const GLfloat DtoR = 0.017453;
 GLfloat theta = 30, phi = 60, rho = 10;
@@ -66,7 +66,7 @@ void init(void)
 		top = REGION_DIM / ratio;
 	}
 
-	glFrustum(left, right, bottom, top, near, far);	
+	glFrustum(left, right, bottom, top, _near, _far);	
 
 	glMatrixMode(GL_MODELVIEW);
 }
@@ -92,7 +92,7 @@ void reshape(GLsizei w, GLsizei h)
 		top = REGION_DIM / ratio;
 	}
 
-	glFrustum(left, right, bottom, top, near, far);	
+	glFrustum(left, right, bottom, top, _near, _far);	
 
 	glMatrixMode(GL_MODELVIEW);
 	glViewport(0, 0, w, h);		
@@ -154,8 +154,10 @@ void specialKeys(int k, int x, int y)
 	}
 }
 
-int main()
+int main(int argc, char** argv)
 {
+	glutInit(&argc, argv);
+
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
 	glutInitWindowSize(ww, wh);
 	glutInitWindowPosition(0, 0);

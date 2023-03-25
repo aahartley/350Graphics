@@ -120,7 +120,7 @@ inline void axes(float length) {
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	glBegin(GL_LINES);
 	glColor3f(1, 0, 0);
-	glVertex3f(-length/2, 0,0);
+	glVertex3f(-length/2, 0, 0);
 	glVertex3f(length / 2, 0, 0);
 
 	glColor3f(0, 1, 0);
