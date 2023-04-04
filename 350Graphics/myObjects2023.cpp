@@ -71,6 +71,7 @@ inline void sphere(float r, int slices, int stacks)
 }
 inline void cube(float sideLength) {
 	float a = sideLength / 2;
+	glNormal3f(0, 0, 1);
 	glBegin(GL_POLYGON);
 	glVertex3f(a, a, a);
 	glVertex3f(-a, a, a);
@@ -78,6 +79,7 @@ inline void cube(float sideLength) {
 	glVertex3f(a, -a, a);
 	glEnd();
 
+	glNormal3f(0, 0, -1);
 	glBegin(GL_POLYGON);
 	glVertex3f(-a, -a, -a);
 	glVertex3f(-a, a, -a);
@@ -85,6 +87,7 @@ inline void cube(float sideLength) {
 	glVertex3f(a, -a, -a);
 	glEnd();
 
+	glNormal3f(-1, 0, 0);
 	glBegin(GL_POLYGON);
 	glVertex3f(-a, -a, -a);
 	glVertex3f(-a, -a, a);
@@ -92,6 +95,7 @@ inline void cube(float sideLength) {
 	glVertex3f(-a, a, a);
 	glEnd();
 
+	glNormal3f(1, 0, 0);
 	glBegin(GL_POLYGON);
 	glVertex3f(a, a, a);
 	glVertex3f(a, a, -a);
@@ -99,6 +103,7 @@ inline void cube(float sideLength) {
 	glVertex3f(-a, a, a);
 	glEnd();
 
+	glNormal3f(0, 1, 0);
 	glBegin(GL_POLYGON);
 	glVertex3f(a, a, a);
 	glVertex3f(a, -a, a);
@@ -106,6 +111,7 @@ inline void cube(float sideLength) {
 	glVertex3f(a, a, -a);
 	glEnd();
 
+	glNormal3f(0, -1, 0);
 	glBegin(GL_POLYGON);
 	glVertex3f(-a, -a, -a);
 	glVertex3f(a, -a, -a);

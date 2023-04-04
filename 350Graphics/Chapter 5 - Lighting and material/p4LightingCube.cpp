@@ -110,7 +110,8 @@ void display(void)
 	glRotatef(beta, 0, 1, 0);
 	glRotatef(gama, 0, 0, 1);
 
-	drawCubeWithNormal(4);
+	//drawCubeWithNormal(4);
+	cube(4);
 	//sphere(2, 40, 80);
 
 	glutSwapBuffers();	
