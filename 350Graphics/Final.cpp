@@ -234,8 +234,9 @@ void display()
 		//glEnd();
 
 	}
-	float angle = 2.0 * 3.14159 / 100;//3.6 d
-	float h = 1.5, r = 1, H = 0.6, R = 1.5,n = 50;
+	float angle = 2 * 3.14159 / 100;//3.6 d
+	angle = 3.14159 / 4;
+	float h = 1.5, r = 1, H = 0.6, R = 1.5, n = 8;
 	float p1[3], p2[3], p3[3], p4[3], norm[3];
 	////----------------------- draw top --------------------------
 	//glNormal3f(0, 0, 1);
@@ -281,7 +282,7 @@ void display()
 	//}
 
 	//---------------------------------------------------------
-	////--------------------- draw side polygons --------------------
+	//--------------------- draw side polygons --------------------
 	//for (int i = 0; i < n; i++)
 	//{
 	//	p1[0] = r * cos(i * angle);
@@ -315,7 +316,6 @@ void display()
 	//		p4[1] = R * sin((i + 1) * angle);
 	//	}
 	//	p4[2] = H;
-
 	//	normal(p1, p3, p2, norm);
 
 	//	glNormal3fv(norm);
@@ -326,7 +326,98 @@ void display()
 	//	glVertex3fv(p3);
 	//	glEnd();
 	//}
-	////-----------------------------------------------------------
+	//-----------------------------------------------------------
+	//draw squirtle shell bttb
+	float radiusFront = 1;
+	float zStart = 0;
+	float zEnd = 1;
+	float radiusBack = 2;
+	for (int i = 0; i < n/2+1; i++) {
+		p1[0] = radiusFront * cos(i * angle);
+		p1[1] = radiusFront * sin(i * angle);
+		if (i == 0 || i==(n/2) )
+			p1[2] = zStart - 0.25;
+		else p1[2] = zStart;
+
+		if ((i == (n - 1)))
+		{
+			p2[0] = radiusFront;
+			p2[1] = 0;
+			p2[2] = -0.25;
+		}
+		else if (i == (n / 2) - 1) {
+			p2[0] = radiusFront;
+			p2[1] = 0;
+			p2[2] = -0.25;
+		}
+		else
+		{
+			p2[0] = radiusFront * cos((i + 1) * angle);
+			p2[1] = radiusFront * sin((i + 1) * angle);
+			p2[2] = zStart;
+		}
+		//if (i == n / 2+1)std::cout << p2[2];
+		p4[0] = radiusBack * cos(i * angle);
+		p4[1] = radiusBack * sin(i * angle);
+		p4[2] = zEnd;
+
+		if (i == n - 1)
+		{
+			p3[0] = radiusBack;
+			p3[1] = 0;
+		}
+		else
+		{
+			p3[0] = radiusBack * cos((i + 1) * angle);
+			p3[1] = radiusBack * sin((i + 1) * angle);
+		}
+		p3[2] = zEnd;
+
+		normal(p1, p2, p3, norm);
+
+		glNormal3fv(norm);
+		glBegin(GL_POLYGON);
+		glVertex3fv(p1);
+		glColor3f(1, 0, 0);
+		glVertex3fv(p2);
+		glColor3f(1, 1, 1);
+
+		glVertex3fv(p3);
+		glVertex3fv(p4);
+		glEnd();
+	}
+	//-----------------------------------------------------------
+	//-----------------------------------------------------------
+	//draw shell top
+	glNormal3f(0, 0, -1);
+	glBegin(GL_POLYGON);
+	for (int i = 0; i <= n/2; i++)
+	{
+		p1[0] = r * cos(i * angle);
+		p1[1] = r * sin(i * angle);
+		if (p1[1] > 0.2)
+			p1[2] = 0;
+		else p1[2] = -.25; 
+		
+
+		glVertex3fv(p1);
+	}
+	glEnd();
+	glNormal3f(0, 0, -1);
+	glBegin(GL_POLYGON);
+	for (int i = n/2; i <= n; i++)
+	{
+		p1[0] = r * cos(i * angle);
+		p1[1] = r * sin(i * angle);
+		if (p1[1] >-0.2)
+			p1[2] = -.25;
+		else p1[2] = 0;
+
+
+		glVertex3fv(p1);
+	}
+	glEnd();
+	//-----------------------------------------------------------
 
 	glutSwapBuffers();
 	glutPostRedisplay();
@@ -372,7 +463,7 @@ void init(void)
 
 	glClearColor(0, 0, 0, 1.0);	// background color; default black; (R, G, B, Opacity)
 	//glColor3f(1, 1, 1);	// drawing color; default white
-	glEnable(GL_LIGHTING);
+	//glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
 	currentMaterials = &redPlasticMaterials;
 	materials(currentMaterials);
