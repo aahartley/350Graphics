@@ -192,8 +192,11 @@ void reshape(int w, int h)
 	glViewport(0, 0, w, h);
 }
 
-void main()
+
+int main(int argc, char** argv)
 {
+
+	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
 	glutInitWindowSize(ww, wh);
 	glutInitWindowPosition(0, 0);
@@ -206,6 +209,7 @@ void main()
 	glutIdleFunc(idle);
 	init();
 	glutMainLoop();
+	return 1;
 }
 
 void normal(float p0[], float p1[], float p2[], float n[])
