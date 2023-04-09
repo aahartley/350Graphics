@@ -102,14 +102,17 @@ void display()
 	////---------------------------------------------------------
 
 	//glutSolidSphere(3, 80, 40);
-	drawSphereWithNormalFlat(3);
-	//drawSphereWithNormalSmooth(3);
+	//drawSphereWithNormalFlat(3);
+	drawSphereWithNormalSmooth(3);
 
 	glutSwapBuffers();
 }
 
-void main()	
+
+int main(int argc, char** argv)
 {
+
+	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
 	glutInitWindowSize(ww, wh);
 
