@@ -31,6 +31,8 @@ float xPos = 0, yPos = 0;
 float r1 = 0.5;
 float r2 = 0.7;
 float r3 = 0.9;
+
+float legtheta = 90;
 GLfloat global_ambient[] = { 1, 0.0, 0.0, 1.0 };  // independent of any of the sources
 GLfloat emission[] = { 1, 1, 1 };
 
@@ -70,9 +72,9 @@ materialStruct redPlasticMaterials = {
 	32.0
 };
 materialStruct blueMaterials = {
-	{0., 0.0, 0.3, 1.0},
-	{0.0, 0.0, 0.6, 1.0},
-	{0.0, 0.6, 0.8, 1.0},
+	{0., 0.0, 0.6, 1.0},
+	{0.0, 0.0, 0.4, 1.0},
+	{0.0, 0.6, 0.1, 1.0},
 	2.0
 };
 
@@ -81,6 +83,12 @@ materialStruct brassMaterials = {
 	{ 0.78, 0.57, 0.11, 1.0 },
 	{ 0.99, 0.91, 0.81, 1.0 },
 	27.8
+};
+materialStruct whiteShineyMaterials = {
+	{1.0, 1.0, 1.0, 1.0},
+	{1.0, 1.0, 1.0, 1.0},
+	{1.0, 1.0, 1.0, 1.0},
+	100.0
 };
 lightingStruct coloredLighting = {
 	{0.2, 0.0, 0.0, 1.0},
@@ -163,9 +171,11 @@ void shell() {
 	angle = 3.14159 / 4;
 	float h = 1.5, r = 1, H = 0.6, R = 1.5, n = 8;
 	float p1[3], p2[3], p3[3], p4[3], norm[3];
-	currentMaterials = &blueMaterials;
-	materials(currentMaterials);
+
 	glPushMatrix();
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	currentMaterials = &redPlasticMaterials;
+	materials(currentMaterials);
 	glTranslatef(0, 0, -2.4);
 	glRotatef(90,0, 0, 1);
 	//draw squirtle shell bttb
@@ -329,6 +339,8 @@ void shell() {
 		else normal(p3, p2, p1, norm);
 		if (j!=0 && j < shellStacks-2)glNormal3f(1, 0, 0);
 		else glNormal3fv(norm);
+		currentMaterials = &whiteShineyMaterials;
+		materials(currentMaterials);
 		glBegin(GL_POLYGON);
 		for (int i = 0; i < basePoints.size(); i++) {
 			p1[0] = basePoints[i].x;
@@ -340,8 +352,10 @@ void shell() {
 		basePoints.clear();
 	}
 	
-
+	glPopAttrib();
 	glPopMatrix();
+	currentMaterials = &blueMaterials;
+	materials(currentMaterials);
 }
 
 void mainBody();
@@ -361,11 +375,17 @@ void tail();
 void leftCheek();
 void rightCheek();
 void drawPikachu();
+
 void head2();
 void rightEye();
 void leftEye();
 void body();
 void leftArm();
+void rightArm();
+void shell();
+void leftLeg();
+void rightLeg();
+void leftFoot();
 void drawSquirtle();
 
 void display()
@@ -508,6 +528,9 @@ void idle()
 {
 	theta2 += 14.92 * increment;
 	if (theta2 > 360) theta2 -= 360;
+
+	//legtheta -= 14.92 * increment;
+	//if (legtheta < 80) legtheta = 90;
 	glutPostRedisplay();
 	//alpha += 14.92 * increment;
 	//if (alpha > 360) alpha -= 360;
@@ -691,6 +714,10 @@ void drawSquirtle() {
 	shell();
 	body();
 	leftArm();
+	rightArm();
+	leftLeg();
+	rightLeg();
+	leftFoot();
 }
 
 void head2() {
@@ -854,6 +881,8 @@ void body() {
 	glPushMatrix();
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	//	glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emission);  // add a fixed color
+	currentMaterials = &brassMaterials;
+	materials(currentMaterials);
 	glTranslatef(0, -0.3, -0.2);
 	//glRotatef(90, 0, 0, 1);
 	//glRotatef(90, 1, 0, 0);
@@ -861,18 +890,128 @@ void body() {
 	drawSphereWithNormalSmooth(1.4);
 	glPopAttrib();
 	glPopMatrix();
+	currentMaterials = &blueMaterials;
+	materials(currentMaterials);
 }
 void leftArm() {
 	//hand left
+	//glPushMatrix();
+	//glTranslatef(-2, 0, 2);
+	//glScalef(0.4, 1, 0.4);
+	//drawCylinder(1, 1, 1, 1, 1);
+	//glPopMatrix();
+	for (float i = 0; i < 0.5; i += 0.05) {
+
+		glPushMatrix();
+		glTranslatef(-1.5 - i, 0.5, 0 + i);
+		glScalef(1, 1, 1);
+		drawSphereWithNormalSmooth(0.5);
+		glPopMatrix();
+	}
 	glPushMatrix();
-	glTranslatef(-2, 0, 2);
-	glScalef(0.4, 1, 0.4);
-	drawCylinder(1, 1, 1, 1, 1);
+	glRotatef(25, 0, 1, 0);
+	for (float i = 0.5; i < 1; i += 0.1) {
+		glPushMatrix();
+		glTranslatef(-1.6 - i, 0.5, -1+ i * 1.3);
+		glScalef(1, 1, 1);
+		drawSphereWithNormalSmooth(0.5);
+		glPopMatrix();
+	}
 	glPopMatrix();
+
 }
+void rightArm() {
+	//hand right
+	//glPushMatrix();
+	//glTranslatef(-2, 0, 2);
+	//glScalef(0.4, 1, 0.4);
+	//drawCylinder(1, 1, 1, 1, 1);
+	//glPopMatrix();
+	for (float i = 0; i < 0.5; i += 0.05) {
 
+		glPushMatrix();
+		glTranslatef(1.5 +i, 0.5, 0 + i);
+		glScalef(1, 1, 1);
+		drawSphereWithNormalSmooth(0.5);
+		glPopMatrix();
+	}
+	glPushMatrix();
+	glRotatef(-25, 0, 1, 0);
+	for (float i = 0.5; i < 1; i += 0.1) {
+		glPushMatrix();
+		glTranslatef(1.6 +i, 0.5, -1 + i * 1.3);
+		glScalef(1, 1, 1);
+		drawSphereWithNormalSmooth(0.5);
+		glPopMatrix();
+	}
+	glPopMatrix();
 
+}
+void leftLeg() {
+	//leg left
+	glPushMatrix();
+	//glTranslatef(-2, 0, 2);
+	//glScalef(0.4, 1, 0.4);
+	//drawCylinder(1, 1, 1, 1, 1);
+	//glPopMatrix();
+	glTranslatef(0, -.8, 0);
+	glRotatef(90, 1, 0, 1);
+	for (float i = 0; i < 0.5; i += 0.1) {
 
+		glPushMatrix();
+		glTranslatef(-1.5 - i, 0.5, 0 + i);
+		glScalef(1, 1, 1);
+		drawSphereWithNormalSmooth(0.5);
+		glPopMatrix();
+	}
+	glPushMatrix();
+	glTranslatef(0.3, 0, 0.3);
+	glRotatef(15, -1, 1, 0);
+	for (float i = 0.5; i < 1; i += 0.1) {
+		glPushMatrix();
+		glTranslatef(-1.6 - i, 0.5, -1 + i * 1.3);
+		glScalef(1, 1, 1);
+		drawSphereWithNormalSmooth(0.5);
+		glPopMatrix();
+	}
+	glPopMatrix();
+	glPopMatrix();
+
+}
+void rightLeg() {
+	//leg left
+	glPushMatrix();
+	//glTranslatef(-2, 0, 2);
+	//glScalef(0.4, 1, 0.4);
+	//drawCylinder(1, 1, 1, 1, 1);
+	//glPopMatrix();
+	glTranslatef(2, -.8, 0);
+	glRotatef(legtheta, 1, 0, 1);
+	for (float i = 0; i < 0.5; i += 0.1) {
+
+		glPushMatrix();
+		glTranslatef(-1.5 - i, 0.5, 0 + i);
+		glScalef(1, 1, 1);
+		drawSphereWithNormalSmooth(0.5);
+		glPopMatrix();
+	}
+	glPushMatrix();
+	glTranslatef(0.3, 0, 0.3);
+	glRotatef(15, -1, 1, 0);
+	for (float i =0.5; i < 1; i += 0.1) {
+		glPushMatrix();
+		glTranslatef(-1.6 - i, 0.5, -1 + i * 1.3);
+		glScalef(1, 1, 1);
+		drawSphereWithNormalSmooth(0.5);
+		glPopMatrix();
+	}
+	glPopMatrix();
+	glPopMatrix();
+
+}
+void leftFoot() {
+
+}
 void mainBody() {
 
 	//main body
