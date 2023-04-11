@@ -1,5 +1,6 @@
 #include <iostream>	
 #include <vector>
+#include <time.h>
 #include "myObjects2023.cpp"
 
 #define DtoR 0.017453
@@ -19,6 +20,8 @@ GLfloat dAlpha = 5, dBeta = 5, dGama = 5;
 GLfloat a = 1.0, b = 1.0, c = 1.0;
 GLfloat dA = 0.1, dB = 0.1, dC = 0.1;
 GLfloat direction = 1.0;
+
+int initialTime = time(NULL), finalTime, frameCount=0;
 
 GLfloat left, right, bottom, top, _near = 0.01, _far = 200;
 
@@ -140,8 +143,51 @@ float* normal(float p0[], float p1[], float p2[])
 		n[i] = n[i] / d;
 	return n;
 }
+void drawSphereWithNormalSmooth(GLfloat radius)
+{
+	GLint longitude = 5, latitude = 5;
+	GLint phi, theta;
+	GLfloat p1[3], p2[3], p3[3], p4[3];
+	float invR = 1 / radius;
+
+	glBegin(GL_QUADS);
+	for (phi = -90; phi <= 90 - latitude; phi += latitude)
+	{
+		for (theta = -180; theta <= 180; theta += longitude)
+		{
+			p1[0] = radius * cos(theta * DtoR) * cos(phi * DtoR);
+			p1[1] = radius * sin(theta * DtoR) * cos(phi * DtoR);
+			p1[2] = radius * sin(phi * DtoR);
+
+			p2[0] = radius * cos((theta + longitude) * DtoR) * cos(phi * DtoR);
+			p2[1] = radius * sin((theta + longitude) * DtoR) * cos(phi * DtoR);
+			p2[2] = radius * sin(phi * DtoR);
+
+			p3[0] = radius * cos((theta + longitude) * DtoR) * cos((phi + latitude) * DtoR);
+			p3[1] = radius * sin((theta + longitude) * DtoR) * cos((phi + latitude) * DtoR);
+			p3[2] = radius * sin((phi + latitude) * DtoR);
+
+			p4[0] = radius * cos(theta * DtoR) * cos((phi + latitude) * DtoR);
+			p4[1] = radius * sin(theta * DtoR) * cos((phi + latitude) * DtoR);
+			p4[2] = radius * sin((phi + latitude) * DtoR);
+
+			glNormal3f(p1[0] * invR, p1[1] * invR, p1[2] * invR); // could be set up for every vertex
+			glVertex3fv(p1);
+			glNormal3f(p2[0] * invR, p2[1] * invR, p2[2] * invR);
+			glVertex3fv(p2);
+			glNormal3f(p3[0] * invR, p3[1] * invR, p3[2] * invR);
+			glVertex3fv(p3);
+			glNormal3f(p4[0] * invR, p4[1] * invR, p4[2] * invR);
+			glVertex3fv(p4);
+		}
+
+	}
+	glEnd();
+
+}
 std::vector<float*> verts;
 std::vector<Triangle> triangles;
+
 void genplane(float* offset, bool build, int vertsPerRow) {
 	verts.push_back(offset);
 	if (build) {
@@ -425,7 +471,15 @@ void display()
 	drawSquirtle();
 
 	glutSwapBuffers();
-	glutPostRedisplay();
+	//glutPostRedisplay();
+
+	frameCount++;
+	finalTime = time(NULL);
+	if (finalTime - initialTime > 0) {
+		std::cout << "FPS: " << frameCount / (finalTime - initialTime) << '\n';
+		frameCount = 0;
+		initialTime = finalTime;
+	}
 }
 
 
@@ -714,10 +768,10 @@ void drawSquirtle() {
 	shell();
 	body();
 	leftArm();
-	rightArm();
-	leftLeg();
-	rightLeg();
-	leftFoot();
+	//rightArm();
+	//leftLeg();
+	//rightLeg();
+	//leftFoot();
 }
 
 void head2() {

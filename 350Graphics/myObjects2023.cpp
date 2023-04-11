@@ -35,7 +35,7 @@ inline void normal(float p0[], float p1[], float p2[], float n[])
 		d = 1;
 
 	for (int i = 0; i < 3; i++)
-		n[i] = n[i] / d;
+		n[i] = n[i] * (1/d);
 }
 inline void sphere(float r, int slices, int stacks)
 {
@@ -474,50 +474,51 @@ inline void drawCylinder(float x1Radius, float z1Radius, float x2Radius, float z
 	drawCircle(x2Radius, z2Radius, height);
 }
 
-inline void drawSphereWithNormalSmooth(GLfloat radius)
-{
-	GLint longitude = 5, latitude = 5;
-	GLint phi, theta;
-	GLfloat p1[3], p2[3], p3[3], p4[3];
-
-	for (phi = -90; phi <= 90 - latitude; phi += latitude)
-	{
-		for (theta = -180; theta <= 180; theta += longitude)
-		{
-			p1[0] = radius * cos(theta * DtoR) * cos(phi * DtoR);
-			p1[1] = radius * sin(theta * DtoR) * cos(phi * DtoR);
-			p1[2] = radius * sin(phi * DtoR);
-
-			p2[0] = radius * cos((theta + longitude) * DtoR) * cos(phi * DtoR);
-			p2[1] = radius * sin((theta + longitude) * DtoR) * cos(phi * DtoR);
-			p2[2] = radius * sin(phi * DtoR);
-
-			p3[0] = radius * cos((theta + longitude) * DtoR) * cos((phi + latitude) * DtoR);
-			p3[1] = radius * sin((theta + longitude) * DtoR) * cos((phi + latitude) * DtoR);
-			p3[2] = radius * sin((phi + latitude) * DtoR);
-
-			p4[0] = radius * cos(theta * DtoR) * cos((phi + latitude) * DtoR);
-			p4[1] = radius * sin(theta * DtoR) * cos((phi + latitude) * DtoR);
-			p4[2] = radius * sin((phi + latitude) * DtoR);
-
-			glBegin(GL_POLYGON);
-			glNormal3f(p1[0] / radius, p1[1] / radius, p1[2] / radius); // could be set up for every vertex
-			glVertex3fv(p1);
-			glNormal3f(p2[0] / radius, p2[1] / radius, p2[2] / radius);
-			glVertex3fv(p2);
-			glNormal3f(p3[0] / radius, p3[1] / radius, p3[2] / radius);
-			glVertex3fv(p3);
-			glNormal3f(p4[0] / radius, p4[1] / radius, p4[2] / radius);
-			glVertex3fv(p4);
-			glEnd();
-		}
-	}
-}
+//inline void drawSphereWithNormalSmooth(GLfloat radius)
+//{
+//	GLint longitude = 5, latitude = 5;
+//	GLint phi, theta;
+//	GLfloat p1[3], p2[3], p3[3], p4[3];
+//
+//	for (phi = -90; phi <= 90 - latitude; phi += latitude)
+//	{
+//		for (theta = -180; theta <= 180; theta += longitude)
+//		{
+//			p1[0] = radius * cos(theta * DtoR) * cos(phi * DtoR);
+//			p1[1] = radius * sin(theta * DtoR) * cos(phi * DtoR);
+//			p1[2] = radius * sin(phi * DtoR);
+//
+//			p2[0] = radius * cos((theta + longitude) * DtoR) * cos(phi * DtoR);
+//			p2[1] = radius * sin((theta + longitude) * DtoR) * cos(phi * DtoR);
+//			p2[2] = radius * sin(phi * DtoR);
+//
+//			p3[0] = radius * cos((theta + longitude) * DtoR) * cos((phi + latitude) * DtoR);
+//			p3[1] = radius * sin((theta + longitude) * DtoR) * cos((phi + latitude) * DtoR);
+//			p3[2] = radius * sin((phi + latitude) * DtoR);
+//
+//			p4[0] = radius * cos(theta * DtoR) * cos((phi + latitude) * DtoR);
+//			p4[1] = radius * sin(theta * DtoR) * cos((phi + latitude) * DtoR);
+//			p4[2] = radius * sin((phi + latitude) * DtoR);
+//
+//			glBegin(GL_POLYGON);
+//			glNormal3f(p1[0] / radius, p1[1] / radius, p1[2] / radius); // could be set up for every vertex
+//			glVertex3fv(p1);
+//			glNormal3f(p2[0] / radius, p2[1] / radius, p2[2] / radius);
+//			glVertex3fv(p2);
+//			glNormal3f(p3[0] / radius, p3[1] / radius, p3[2] / radius);
+//			glVertex3fv(p3);
+//			glNormal3f(p4[0] / radius, p4[1] / radius, p4[2] / radius);
+//			glVertex3fv(p4);
+//			glEnd();
+//		}
+//	}
+//}
 inline void drawHalfSphereWithNormalSmooth(GLfloat radius)
 {
 	GLint longitude = 5, latitude = 5;
 	GLint phi, theta;
 	GLfloat p1[3], p2[3], p3[3], p4[3];
+	float invR = 1 / radius;
 
 	for (phi = -90; phi <= 0 - latitude; phi += latitude)
 	{
@@ -540,13 +541,13 @@ inline void drawHalfSphereWithNormalSmooth(GLfloat radius)
 			p4[2] = radius * sin((phi + latitude) * DtoR);
 
 			glBegin(GL_POLYGON);
-			glNormal3f(p1[0] / radius, p1[1] / radius, p1[2] / radius); // could be set up for every vertex
+			glNormal3f(p1[0] * invR, p1[1] * invR, p1[2] * invR); // could be set up for every vertex
 			glVertex3fv(p1);
-			glNormal3f(p2[0] / radius, p2[1] / radius, p2[2] / radius);
+			glNormal3f(p2[0] * invR, p2[1] * invR, p2[2] * invR);
 			glVertex3fv(p2);
-			glNormal3f(p3[0] / radius, p3[1] / radius, p3[2] / radius);
+			glNormal3f(p3[0] * invR, p3[1] * invR, p3[2] * invR);
 			glVertex3fv(p3);
-			glNormal3f(p4[0] / radius, p4[1] / radius, p4[2] / radius);
+			glNormal3f(p4[0] * invR, p4[1] * invR, p4[2] * invR);
 			glVertex3fv(p4);
 			glEnd();
 		}
