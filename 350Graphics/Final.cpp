@@ -62,6 +62,7 @@ struct Quad {
 
 };
 int quadIndex = 0;
+int quadIndexHalf = 0;
 struct Vector3f {
 	float x, y, z;
 };
@@ -157,46 +158,54 @@ float* normal(float p0[], float p1[], float p2[])
 		n[i] = n[i] / d;
 	return n;
 }
-std::vector<Quad> quads;
-void drawHalfSphereWithNormalSmooth(GLfloat radius)
+std::vector<Quad> sphereQuads;
+std::vector<Quad> halfSphereQuads;
+void createHalfSphereWithNormalSmooth(GLfloat radius)
 {
 	GLint longitude = 5, latitude = 5;
 	GLint phi, theta;
 	GLfloat p1[3], p2[3], p3[3], p4[3];
 	float invR = 1 / radius;
-	glBegin(GL_QUADS);
-
+	int count = 0;
 	for (phi = -90; phi <= 0 - latitude; phi += latitude)
 	{
 		for (theta = -180; theta <= 180; theta += longitude)
 		{
-			p1[0] = radius * cos(theta * DtoR) * cos(phi * DtoR);
-			p1[1] = radius * sin(theta * DtoR) * cos(phi * DtoR);
-			p1[2] = radius * sin(phi * DtoR);
+			Quad tmp;
+			tmp.v1[0] = radius * cos(theta * DtoR) * cos(phi * DtoR);
+			tmp.v1[1] = radius * sin(theta * DtoR) * cos(phi * DtoR);
+			tmp.v1[2] = radius * sin(phi * DtoR);
+			tmp.n1[0] = tmp.v1[0] * invR;
+			tmp.n1[1] = tmp.v1[1] * invR;
+			tmp.n1[2] = tmp.v1[2] * invR;
 
-			p2[0] = radius * cos((theta + longitude) * DtoR) * cos(phi * DtoR);
-			p2[1] = radius * sin((theta + longitude) * DtoR) * cos(phi * DtoR);
-			p2[2] = radius * sin(phi * DtoR);
+			tmp.v2[0] = radius * cos((theta + longitude) * DtoR) * cos(phi * DtoR);
+			tmp.v2[1] = radius * sin((theta + longitude) * DtoR) * cos(phi * DtoR);
+			tmp.v2[2] = radius * sin(phi * DtoR);
+			tmp.n2[0] = tmp.v2[0] * invR;
+			tmp.n2[1] = tmp.v2[1] * invR;
+			tmp.n2[2] = tmp.v2[2] * invR;
 
-			p3[0] = radius * cos((theta + longitude) * DtoR) * cos((phi + latitude) * DtoR);
-			p3[1] = radius * sin((theta + longitude) * DtoR) * cos((phi + latitude) * DtoR);
-			p3[2] = radius * sin((phi + latitude) * DtoR);
+			tmp.v3[0] = radius * cos((theta + longitude) * DtoR) * cos((phi + latitude) * DtoR);
+			tmp.v3[1] = radius * sin((theta + longitude) * DtoR) * cos((phi + latitude) * DtoR);
+			tmp.v3[2] = radius * sin((phi + latitude) * DtoR);
+			tmp.n3[0] = tmp.v3[0] * invR;
+			tmp.n3[1] = tmp.v3[1] * invR;
+			tmp.n3[2] = tmp.v3[2] * invR;
 
-			p4[0] = radius * cos(theta * DtoR) * cos((phi + latitude) * DtoR);
-			p4[1] = radius * sin(theta * DtoR) * cos((phi + latitude) * DtoR);
-			p4[2] = radius * sin((phi + latitude) * DtoR);
+			tmp.v4[0] = radius * cos(theta * DtoR) * cos((phi + latitude) * DtoR);
+			tmp.v4[1] = radius * sin(theta * DtoR) * cos((phi + latitude) * DtoR);
+			tmp.v4[2] = radius * sin((phi + latitude) * DtoR);
+			tmp.n4[0] = tmp.v4[0] * invR;
+			tmp.n4[1] = tmp.v4[1] * invR;
+			tmp.n4[2] = tmp.v4[2] * invR;
 
-			glNormal3f(p1[0] * invR, p1[1] * invR, p1[2] * invR); // could be set up for every vertex
-			glVertex3fv(p1);
-			glNormal3f(p2[0] * invR, p2[1] * invR, p2[2] * invR);
-			glVertex3fv(p2);
-			glNormal3f(p3[0] * invR, p3[1] * invR, p3[2] * invR);
-			glVertex3fv(p3);
-			glNormal3f(p4[0] * invR, p4[1] * invR, p4[2] * invR);
-			glVertex3fv(p4);
+			halfSphereQuads.push_back(tmp);
+			count++;
 		}
 	}
-	glEnd();
+	//std::cout << count << '\n';
+	//std::cout << halfSphereQuads.size() << '\n';
 
 }
 void createSphereWithNormalSmooth(GLfloat radius) {
@@ -238,7 +247,7 @@ void createSphereWithNormalSmooth(GLfloat radius) {
 			tmp.n4[1] = tmp.v4[1] * invR;
 			tmp.n4[2] = tmp.v4[2] * invR;
 
-			quads.push_back(tmp);
+			sphereQuads.push_back(tmp);
 			count++;
 
 			//glNormal3f(p1[0] * invR, p1[1] * invR, p1[2] * invR); // could be set up for every vertex
@@ -260,15 +269,33 @@ void drawSphereWithNormalSmooth(int index)
 	//std::cout << index << '\n';
 	glBegin(GL_QUADS);
 	for (int i = 0; i < 2628; i++) {
-			glNormal3fv(quads[i + index].n1);
-			glVertex3fv(quads[i + index].v1);
-			glNormal3fv(quads[i + index].n2);
-			glVertex3fv(quads[i + index].v2);
-			glNormal3fv(quads[i + index].n3);
-			glVertex3fv(quads[i + index].v3);
-			glNormal3fv(quads[i + index].n4);
-			glVertex3fv(quads[i + index].v4);
+			glNormal3fv(sphereQuads[i + index].n1);
+			glVertex3fv(sphereQuads[i + index].v1);
+			glNormal3fv(sphereQuads[i + index].n2);
+			glVertex3fv(sphereQuads[i + index].v2);
+			glNormal3fv(sphereQuads[i + index].n3);
+			glVertex3fv(sphereQuads[i + index].v3);
+			glNormal3fv(sphereQuads[i + index].n4);
+			glVertex3fv(sphereQuads[i + index].v4);
 		
+	}
+	glEnd();
+
+}
+void drawHalfSphereWithNormalSmooth(int index)
+{
+	//std::cout << index << '\n';
+	glBegin(GL_QUADS);
+	for (int i = 0; i < 1314; i++) {
+		glNormal3fv(halfSphereQuads[i + index].n1);
+		glVertex3fv(halfSphereQuads[i + index].v1);
+		glNormal3fv(halfSphereQuads[i + index].n2);
+		glVertex3fv(halfSphereQuads[i + index].v2);
+		glNormal3fv(halfSphereQuads[i + index].n3);
+		glVertex3fv(halfSphereQuads[i + index].v3);
+		glNormal3fv(halfSphereQuads[i + index].n4);
+		glVertex3fv(halfSphereQuads[i + index].v4);
+
 	}
 	glEnd();
 
@@ -299,197 +326,6 @@ void genplane(float* offset, bool build, int vertsPerRow) {
 		tmp2.normal = normal(tmp2.p1, tmp2.p2, tmp2.p3); //3,1,2
 		triangles.push_back(tmp2);
 	}
-}
-void shell() {
-	float angle = 2 * 3.14159 / 100;//3.6 d
-	angle = 3.14159 / 4;
-	float h = 1.5, r = 1, H = 0.6, R = 1.5, n = 8;
-	float p1[3], p2[3], p3[3], p4[3], norm[3];
-
-	glPushMatrix();
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-	currentMaterials = &redPlasticMaterials;
-	materials(currentMaterials);
-	glTranslatef(0, 0, -2.4);
-	glRotatef(90,0, 0, 1);
-	//draw squirtle shell bttb
-	float radiusFront = 1;
-	float zStart = 0;
-	float zEnd = 1;
-	float radiusBack = 2;
-	float shellIncrement = .25;
-	for (int i = 0; i < n; i++) {
-		p1[0] = radiusFront * cos(i * angle);
-		p1[1] = radiusFront * sin(i * angle);
-		if (i == 0 || i == (n / 2))
-			p1[2] = zStart - shellIncrement;
-		else p1[2] = zStart;
-
-		if ((i == (n - 1)))
-		{
-			p2[0] = radiusFront;
-			p2[1] = 0;
-			p2[2] = zStart - shellIncrement;
-		}
-		else if (i == (n / 2) - 1) {
-			p2[0] = radiusFront * cos((i + 1) * angle);
-			p2[1] = radiusFront * sin((i + 1) * angle);
-			p2[2] = zStart - shellIncrement;
-		}
-		else
-		{
-			p2[0] = radiusFront * cos((i + 1) * angle);
-			p2[1] = radiusFront * sin((i + 1) * angle);
-			p2[2] = zStart;
-		}
-		//if (i == n / 2+1)std::cout << p2[2];
-		p4[0] = radiusBack * cos(i * angle);
-		p4[1] = radiusBack * sin(i * angle);
-		p4[2] = zEnd;
-
-		if (i == n - 1)
-		{
-			p3[0] = radiusBack;
-			p3[1] = 0;
-		}
-		else
-		{
-			p3[0] = radiusBack * cos((i + 1) * angle);
-			p3[1] = radiusBack * sin((i + 1) * angle);
-		}
-		p3[2] = zEnd;
-
-		normal(p1, p2, p3, norm);
-
-		glNormal3fv(norm);
-		glBegin(GL_POLYGON);
-		glVertex3fv(p1);
-		glVertex3fv(p2);
-		glVertex3fv(p3);
-		glVertex3fv(p4);
-		glEnd();
-	}
-	//-----------------------------------------------------------
-	//-----------------------------------------------------------
-	//draw shell top
-	//glNormal3f(0, 0, -1);
-	std::vector<Vector3f> topPoints;
-	for (int i = 0; i <= n / 2; i++)
-	{
-		p1[0] = radiusFront * cos(i * angle);
-		p1[1] = radiusFront * sin(i * angle);
-		if (p1[1] > 0.2)
-			p1[2] = 0;
-		else p1[2] = zStart-shellIncrement;
-		Vector3f tmp{ p1[0],p1[1],p1[2] };
-		topPoints.push_back(tmp);
-
-	}
-	p1[0] = topPoints[0].x;
-	p1[1] = topPoints[0].y;
-	p1[2] = topPoints[0].z;
-
-	p2[0] = topPoints[1].x;
-	p2[1] = topPoints[1].y;
-	p2[2] = topPoints[1].z;
-
-	p3[0] = topPoints[2].x;
-	p3[1] = topPoints[2].y;
-	p3[2] = topPoints[2].z;
-
-	normal(p3, p2, p1, norm);
-	glNormal3fv(norm);
-	glBegin(GL_POLYGON);
-	for (int i = 0; i < topPoints.size(); i++) {
-		p1[0] = topPoints[i].x;
-		p1[1] = topPoints[i].y;
-		p1[2] = topPoints[i].z;
-		glVertex3fv(p1);
-	}
-	glEnd();
-
-
-
-	for (int i = n / 2; i <= n; i++)
-	{
-		p1[0] = r * cos(i * angle);
-		p1[1] = r * sin(i * angle);
-		if (p1[1] > -0.2)
-			p1[2] = -.25;
-		else p1[2] = 0;
-		Vector3f tmp{ p1[0],p1[1],p1[2] };
-		topPoints.push_back(tmp);
-
-	}
-	p1[0] = topPoints[5].x;
-	p1[1] = topPoints[5].y;
-	p1[2] = topPoints[5].z;
-
-	p2[0] = topPoints[6].x;
-	p2[1] = topPoints[6].y;
-	p2[2] = topPoints[6].z;
-
-	p3[0] = topPoints[7].x;
-	p3[1] = topPoints[7].y;
-	p3[2] = topPoints[7].z;
-	normal(p3, p2, p1, norm);
-	glNormal3fv(norm);
-	//std::cout << norm[0] << norm[1] << norm[2] << '\n';
-
-	glBegin(GL_POLYGON);
-	for (int i = 5; i < topPoints.size(); i++) {
-		p1[0] = topPoints[i].x;
-		p1[1] = topPoints[i].y;
-		p1[2] = topPoints[i].z;
-		glVertex3fv(p1);
-	}
-	glEnd();
-	//-----------------------------------------------------------
-	//draw shell base
-	float shellStacks = 25;
-	//glNormal3f(0, 0, -1);
-	std::vector<Vector3f> basePoints;
-	for (int j = 0; j < shellStacks; j++) {
-		for (int i = 0; i <= n; i++)
-		{
-			p1[0] = (radiusBack + shellIncrement) * cos(i * angle);
-			p1[1] = (radiusBack + shellIncrement) * sin(i * angle);
-			p1[2] = zEnd+j*.01;
-			Vector3f tmp{ p1[0],p1[1],p1[2] };
-			basePoints.push_back(tmp);
-		}
-		p1[0] = basePoints[0].x;
-		p1[1] = basePoints[0].y;
-		p1[2] = basePoints[0].z;
-
-		p2[0] = basePoints[1].x;
-		p2[1] = basePoints[1].y;
-		p2[2] = basePoints[1].z;
-
-		p3[0] = basePoints[2].x;
-		p3[1] = basePoints[2].y;
-		p3[2] = basePoints[2].z;
-		if (j == shellStacks - 1)normal(p1, p2, p3, norm);
-		else normal(p3, p2, p1, norm);
-		if (j!=0 && j < shellStacks-2)glNormal3f(1, 0, 0);
-		else glNormal3fv(norm);
-		currentMaterials = &whiteShineyMaterials;
-		materials(currentMaterials);
-		glBegin(GL_POLYGON);
-		for (int i = 0; i < basePoints.size(); i++) {
-			p1[0] = basePoints[i].x;
-			p1[1] = basePoints[i].y;
-			p1[2] = basePoints[i].z;
-			glVertex3fv(p1);
-		}
-		glEnd();
-		basePoints.clear();
-	}
-	
-	glPopAttrib();
-	glPopMatrix();
-	currentMaterials = &blueMaterials;
-	materials(currentMaterials);
 }
 
 
@@ -607,6 +443,19 @@ void init(void)
 			genplane(offset, build, 10 + 1);
 		}
 	}
+
+	createHalfSphereWithNormalSmooth(1);//head2
+	createHalfSphereWithNormalSmooth(1);
+	createHalfSphereWithNormalSmooth(1);
+	createHalfSphereWithNormalSmooth(0.8);
+	createHalfSphereWithNormalSmooth(1);
+	int count = 0;
+	for (int i = 0; i < 36; i++) {  //beak float glitch 
+		createHalfSphereWithNormalSmooth(0.9);
+	}
+
+
+
 	createSphereWithNormalSmooth(0.4);//head2
 	createSphereWithNormalSmooth(0.4);
 
@@ -849,7 +698,8 @@ void head2() {
 	glRotatef(90, 0, 1,0);
 	glRotatef(90, 1, 0, 0);
 	glScalef(1.4, 1.3, 1.6);
-	drawHalfSphereWithNormalSmooth(1);
+	drawHalfSphereWithNormalSmooth(quadIndexHalf);
+	quadIndexHalf += 1314;
 	glPopAttrib();
 	glPopMatrix();
 
@@ -861,7 +711,9 @@ void head2() {
 	glRotatef(90, 0, 1, 0);
 	glRotatef(-90, 1, 0, 0);
 	glScalef(1.4, 1.3, .5);
-	drawHalfSphereWithNormalSmooth(1);
+	drawHalfSphereWithNormalSmooth(quadIndexHalf);
+	quadIndexHalf += 1314;
+
 	glPopAttrib();
 	glPopMatrix();
 	//small thing
@@ -894,7 +746,8 @@ void head2() {
 	glRotatef(-10, 0, 1, 0);
 	glRotatef(-90, 1, 0, 0);
 	glScalef(1.29, 1.3, 1);
-	drawHalfSphereWithNormalSmooth(1);
+	drawHalfSphereWithNormalSmooth(quadIndexHalf);
+	quadIndexHalf += 1314;
 	glPopAttrib();
 	glPopMatrix();
 
@@ -909,7 +762,8 @@ void head2() {
 	glRotatef(-90, 1, 0, 0);
 	glRotatef(90, 0, 0, 1);
 	glScalef(1, 1.4, 1);
-	drawHalfSphereWithNormalSmooth(0.8);
+	drawHalfSphereWithNormalSmooth(quadIndexHalf);
+	quadIndexHalf += 1314;
 	glPopAttrib();
 	glPopMatrix();
 	currentMaterials = &blueMaterials;
@@ -924,11 +778,10 @@ void head2() {
 	glRotatef(18, 0, 0, 1);
 	glRotatef(-90, 1, 0, 0);
 	glScalef(1, 1.26, 1);
-	drawHalfSphereWithNormalSmooth(1);
+	drawHalfSphereWithNormalSmooth(quadIndexHalf);
+	quadIndexHalf += 1314;
 	glPopAttrib();
 	glPopMatrix();
-
-
 
 
 	for (float i = 0.00; i < 0.35; i += 0.01) {
@@ -941,10 +794,14 @@ void head2() {
 		glRotatef(90, 0, 1, 0);
 		glRotatef(-90, 1, 0, 0);
 		glScalef(1.4, 1.3, .5);
-		drawHalfSphereWithNormalSmooth(0.9);
+		drawHalfSphereWithNormalSmooth(quadIndexHalf);
+		quadIndexHalf += 1314;
 		glPopAttrib();
 		glPopMatrix();
+	
 	}
+	quadIndexHalf = 0;
+
 }
 void rightEye() {
 	//right eye shape
@@ -1150,3 +1007,194 @@ void leftFoot() {
 
 }
 
+void shell() {
+	float angle = 2 * 3.14159 / 100;//3.6 d
+	angle = 3.14159 / 4;
+	float h = 1.5, r = 1, H = 0.6, R = 1.5, n = 8;
+	float p1[3], p2[3], p3[3], p4[3], norm[3];
+
+	glPushMatrix();
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	currentMaterials = &redPlasticMaterials;
+	materials(currentMaterials);
+	glTranslatef(0, 0, -2.4);
+	glRotatef(90, 0, 0, 1);
+	//draw squirtle shell bttb
+	float radiusFront = 1;
+	float zStart = 0;
+	float zEnd = 1;
+	float radiusBack = 2;
+	float shellIncrement = .25;
+	for (int i = 0; i < n; i++) {
+		p1[0] = radiusFront * cos(i * angle);
+		p1[1] = radiusFront * sin(i * angle);
+		if (i == 0 || i == (n / 2))
+			p1[2] = zStart - shellIncrement;
+		else p1[2] = zStart;
+
+		if ((i == (n - 1)))
+		{
+			p2[0] = radiusFront;
+			p2[1] = 0;
+			p2[2] = zStart - shellIncrement;
+		}
+		else if (i == (n / 2) - 1) {
+			p2[0] = radiusFront * cos((i + 1) * angle);
+			p2[1] = radiusFront * sin((i + 1) * angle);
+			p2[2] = zStart - shellIncrement;
+		}
+		else
+		{
+			p2[0] = radiusFront * cos((i + 1) * angle);
+			p2[1] = radiusFront * sin((i + 1) * angle);
+			p2[2] = zStart;
+		}
+		//if (i == n / 2+1)std::cout << p2[2];
+		p4[0] = radiusBack * cos(i * angle);
+		p4[1] = radiusBack * sin(i * angle);
+		p4[2] = zEnd;
+
+		if (i == n - 1)
+		{
+			p3[0] = radiusBack;
+			p3[1] = 0;
+		}
+		else
+		{
+			p3[0] = radiusBack * cos((i + 1) * angle);
+			p3[1] = radiusBack * sin((i + 1) * angle);
+		}
+		p3[2] = zEnd;
+
+		normal(p1, p2, p3, norm);
+
+		glNormal3fv(norm);
+		glBegin(GL_POLYGON);
+		glVertex3fv(p1);
+		glVertex3fv(p2);
+		glVertex3fv(p3);
+		glVertex3fv(p4);
+		glEnd();
+	}
+	//-----------------------------------------------------------
+	//-----------------------------------------------------------
+	//draw shell top
+	//glNormal3f(0, 0, -1);
+	std::vector<Vector3f> topPoints;
+	for (int i = 0; i <= n / 2; i++)
+	{
+		p1[0] = radiusFront * cos(i * angle);
+		p1[1] = radiusFront * sin(i * angle);
+		if (p1[1] > 0.2)
+			p1[2] = 0;
+		else p1[2] = zStart - shellIncrement;
+		Vector3f tmp{ p1[0],p1[1],p1[2] };
+		topPoints.push_back(tmp);
+
+	}
+	p1[0] = topPoints[0].x;
+	p1[1] = topPoints[0].y;
+	p1[2] = topPoints[0].z;
+
+	p2[0] = topPoints[1].x;
+	p2[1] = topPoints[1].y;
+	p2[2] = topPoints[1].z;
+
+	p3[0] = topPoints[2].x;
+	p3[1] = topPoints[2].y;
+	p3[2] = topPoints[2].z;
+
+	normal(p3, p2, p1, norm);
+	glNormal3fv(norm);
+	glBegin(GL_POLYGON);
+	for (int i = 0; i < topPoints.size(); i++) {
+		p1[0] = topPoints[i].x;
+		p1[1] = topPoints[i].y;
+		p1[2] = topPoints[i].z;
+		glVertex3fv(p1);
+	}
+	glEnd();
+
+
+
+	for (int i = n / 2; i <= n; i++)
+	{
+		p1[0] = r * cos(i * angle);
+		p1[1] = r * sin(i * angle);
+		if (p1[1] > -0.2)
+			p1[2] = -.25;
+		else p1[2] = 0;
+		Vector3f tmp{ p1[0],p1[1],p1[2] };
+		topPoints.push_back(tmp);
+
+	}
+	p1[0] = topPoints[5].x;
+	p1[1] = topPoints[5].y;
+	p1[2] = topPoints[5].z;
+
+	p2[0] = topPoints[6].x;
+	p2[1] = topPoints[6].y;
+	p2[2] = topPoints[6].z;
+
+	p3[0] = topPoints[7].x;
+	p3[1] = topPoints[7].y;
+	p3[2] = topPoints[7].z;
+	normal(p3, p2, p1, norm);
+	glNormal3fv(norm);
+	//std::cout << norm[0] << norm[1] << norm[2] << '\n';
+
+	glBegin(GL_POLYGON);
+	for (int i = 5; i < topPoints.size(); i++) {
+		p1[0] = topPoints[i].x;
+		p1[1] = topPoints[i].y;
+		p1[2] = topPoints[i].z;
+		glVertex3fv(p1);
+	}
+	glEnd();
+	//-----------------------------------------------------------
+	//draw shell base
+	float shellStacks = 25;
+	//glNormal3f(0, 0, -1);
+	std::vector<Vector3f> basePoints;
+	for (int j = 0; j < shellStacks; j++) {
+		for (int i = 0; i <= n; i++)
+		{
+			p1[0] = (radiusBack + shellIncrement) * cos(i * angle);
+			p1[1] = (radiusBack + shellIncrement) * sin(i * angle);
+			p1[2] = zEnd + j * .01;
+			Vector3f tmp{ p1[0],p1[1],p1[2] };
+			basePoints.push_back(tmp);
+		}
+		p1[0] = basePoints[0].x;
+		p1[1] = basePoints[0].y;
+		p1[2] = basePoints[0].z;
+
+		p2[0] = basePoints[1].x;
+		p2[1] = basePoints[1].y;
+		p2[2] = basePoints[1].z;
+
+		p3[0] = basePoints[2].x;
+		p3[1] = basePoints[2].y;
+		p3[2] = basePoints[2].z;
+		if (j == shellStacks - 1)normal(p1, p2, p3, norm);
+		else normal(p3, p2, p1, norm);
+		if (j != 0 && j < shellStacks - 2)glNormal3f(1, 0, 0);
+		else glNormal3fv(norm);
+		currentMaterials = &whiteShineyMaterials;
+		materials(currentMaterials);
+		glBegin(GL_POLYGON);
+		for (int i = 0; i < basePoints.size(); i++) {
+			p1[0] = basePoints[i].x;
+			p1[1] = basePoints[i].y;
+			p1[2] = basePoints[i].z;
+			glVertex3fv(p1);
+		}
+		glEnd();
+		basePoints.clear();
+	}
+
+	glPopAttrib();
+	glPopMatrix();
+	currentMaterials = &blueMaterials;
+	materials(currentMaterials);
+}
