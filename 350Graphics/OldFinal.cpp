@@ -21,7 +21,7 @@ GLfloat a = 1.0, b = 1.0, c = 1.0;
 GLfloat dA = 0.1, dB = 0.1, dC = 0.1;
 GLfloat direction = 1.0;
 
-int initialTime = time(NULL), finalTime, frameCount=0;
+int initialTime = time(NULL), finalTime, frameCount = 0;
 
 GLfloat left, right, bottom, top, _near = 0.01, _far = 200;
 
@@ -39,7 +39,7 @@ float legtheta = 90;
 GLfloat global_ambient[] = { 1, 0.0, 0.0, 1.0 };  // independent of any of the sources
 GLfloat emission[] = { 1, 1, 1 };
 
-GLfloat lightPos[] = { 0, 3, 5, 1};
+GLfloat lightPos[] = { 0, 3, 5, 1 };
 
 struct Triangle {
 	float* p1;
@@ -260,15 +260,15 @@ void drawSphereWithNormalSmooth(int index)
 	//std::cout << index << '\n';
 	glBegin(GL_QUADS);
 	for (int i = 0; i < 2628; i++) {
-			glNormal3fv(quads[i + index].n1);
-			glVertex3fv(quads[i + index].v1);
-			glNormal3fv(quads[i + index].n2);
-			glVertex3fv(quads[i + index].v2);
-			glNormal3fv(quads[i + index].n3);
-			glVertex3fv(quads[i + index].v3);
-			glNormal3fv(quads[i + index].n4);
-			glVertex3fv(quads[i + index].v4);
-		
+		glNormal3fv(quads[i + index].n1);
+		glVertex3fv(quads[i + index].v1);
+		glNormal3fv(quads[i + index].n2);
+		glVertex3fv(quads[i + index].v2);
+		glNormal3fv(quads[i + index].n3);
+		glVertex3fv(quads[i + index].v3);
+		glNormal3fv(quads[i + index].n4);
+		glVertex3fv(quads[i + index].v4);
+
 	}
 	glEnd();
 
@@ -289,7 +289,7 @@ void genplane(float* offset, bool build, int vertsPerRow) {
 		tmp.p1 = verts[index0];
 		tmp.p2 = verts[index2];
 		tmp.p3 = verts[index1];
-		tmp.normal = normal(tmp.p1,tmp.p2,tmp.p3);
+		tmp.normal = normal(tmp.p1, tmp.p2, tmp.p3);
 		triangles.push_back(tmp);
 
 		Triangle tmp2;
@@ -311,7 +311,7 @@ void shell() {
 	currentMaterials = &redPlasticMaterials;
 	materials(currentMaterials);
 	glTranslatef(0, 0, -2.4);
-	glRotatef(90,0, 0, 1);
+	glRotatef(90, 0, 0, 1);
 	//draw squirtle shell bttb
 	float radiusFront = 1;
 	float zStart = 0;
@@ -380,7 +380,7 @@ void shell() {
 		p1[1] = radiusFront * sin(i * angle);
 		if (p1[1] > 0.2)
 			p1[2] = 0;
-		else p1[2] = zStart-shellIncrement;
+		else p1[2] = zStart - shellIncrement;
 		Vector3f tmp{ p1[0],p1[1],p1[2] };
 		topPoints.push_back(tmp);
 
@@ -454,7 +454,7 @@ void shell() {
 		{
 			p1[0] = (radiusBack + shellIncrement) * cos(i * angle);
 			p1[1] = (radiusBack + shellIncrement) * sin(i * angle);
-			p1[2] = zEnd+j*.01;
+			p1[2] = zEnd + j * .01;
 			Vector3f tmp{ p1[0],p1[1],p1[2] };
 			basePoints.push_back(tmp);
 		}
@@ -471,7 +471,7 @@ void shell() {
 		p3[2] = basePoints[2].z;
 		if (j == shellStacks - 1)normal(p1, p2, p3, norm);
 		else normal(p3, p2, p1, norm);
-		if (j!=0 && j < shellStacks-2)glNormal3f(1, 0, 0);
+		if (j != 0 && j < shellStacks - 2)glNormal3f(1, 0, 0);
 		else glNormal3fv(norm);
 		currentMaterials = &whiteShineyMaterials;
 		materials(currentMaterials);
@@ -485,13 +485,30 @@ void shell() {
 		glEnd();
 		basePoints.clear();
 	}
-	
+
 	glPopAttrib();
 	glPopMatrix();
 	currentMaterials = &blueMaterials;
 	materials(currentMaterials);
 }
 
+void mainBody();
+void lowerBody();
+void leftLegCheek();
+void rightLegCheek();
+void head();
+void noseArea();
+void rightHand();
+void leftHand();
+void leftEar();
+void rightEar();
+void leftEyes();
+void rightEyes();
+void nose();
+void tail();
+void leftCheek();
+void rightCheek();
+void drawPikachu();
 
 void head2();
 void rightEye();
@@ -521,7 +538,7 @@ void display()
 	glRotatef(theta2,1,0,0);
 	glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
 	glPopMatrix();*/
-	
+
 	//std::cout << x+xangle  << ' ' << y-yangle << ' ' << z+zangle << '\n';
 	//gluLookAt(x, y, z, x + xangle, y - yangle, z + zangle, 0, 1, 0);
 	//gluLookAt(8, 8, 12, 0, 0, 0, 0, 1, 0); // for perspective view
@@ -536,7 +553,9 @@ void display()
 	//	glEnd();
 
 	//}
-
+	//drawPikachu();
+	//glTranslatef(0, 0, -4.2);
+	//shell();
 	drawSquirtle();
 
 	glutSwapBuffers();
@@ -594,7 +613,7 @@ void init(void)
 	//gluPerspective(fov, aspect, near, far);
 
 	glMatrixMode(GL_MODELVIEW);
-	
+
 	for (int i = 0; i <= 10; i++) {
 		float z = 3 * i;
 		for (int j = 0; j <= 10; j++) {
@@ -613,7 +632,7 @@ void init(void)
 	createSphereWithNormalSmooth(1); //right eye
 	createSphereWithNormalSmooth(0.4);
 	createSphereWithNormalSmooth(1); //left eye
-	createSphereWithNormalSmooth(0.4); 
+	createSphereWithNormalSmooth(0.4);
 
 	createSphereWithNormalSmooth(1.4); //body
 	for (int i = 0; i < 50; i++) {  //arms,legs
@@ -697,12 +716,12 @@ void mouse(int button, int state, int x, int y)
 	}
 }
 void mouseMove(int x, int y) {
-	
+
 	float xx, yy;
 	xx = x;
 	yy = y;
 	if (xx >= ww - 2)xx = 3;
-	else if (xx <= 2) xx = ww-3;
+	else if (xx <= 2) xx = ww - 3;
 	if (xx != x || yy != y)glutWarpPointer(xx, yy);
 	xPos = (xx - ww / 2) * sens;
 	yPos = (yy - wh / 2) * sens;
@@ -712,7 +731,7 @@ void mouseMove(int x, int y) {
 	zangle = -std::cos(xPos);
 	//std::cout << xangle << ' ' << zangle << '\n';
 
-	if (std::abs(yPos)>=1.57){
+	if (std::abs(yPos) >= 1.57) {
 		int sign = yPos > 0 ? 1 : -1;
 		yangle = 1 * sign;
 	}
@@ -734,7 +753,7 @@ void keys(unsigned char k, int xx, int yy)
 		z += xangle * speed;
 	}
 	else if (k == 'w' || k == 'W') {
-		x +=xangle * speed;
+		x += xangle * speed;
 		z += zangle * speed;
 		//std::cout << x << ' ' << z << '\n';
 
@@ -745,7 +764,7 @@ void keys(unsigned char k, int xx, int yy)
 		//std::cout << x << ' ' << z << '\n';
 
 	}
-		//a += dA * direction;
+	//a += dA * direction;
 	else if (k == 'b' || k == 'B')
 		b += dB * direction;
 	else if (k == 'c' || k == 'C')
@@ -846,7 +865,7 @@ void head2() {
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	//	glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emission);  // add a fixed color
 	glTranslatef(0, 2, 0);
-	glRotatef(90, 0, 1,0);
+	glRotatef(90, 0, 1, 0);
 	glRotatef(90, 1, 0, 0);
 	glScalef(1.4, 1.3, 1.6);
 	drawHalfSphereWithNormalSmooth(1);
@@ -904,7 +923,7 @@ void head2() {
 	currentMaterials = &redPlasticMaterials;
 	materials(currentMaterials);
 	//glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emission);  // add a fixed color
-	glTranslatef(0, 2,0.39);
+	glTranslatef(0, 2, 0.39);
 	//glRotatef(90, 1, 0, 0);
 	glRotatef(-90, 1, 0, 0);
 	glRotatef(90, 0, 0, 1);
@@ -937,7 +956,7 @@ void head2() {
 		glPushMatrix();
 		glPushAttrib(GL_ALL_ATTRIB_BITS);
 		//	glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emission);  // add a fixed color
-		glTranslatef(0, 2.05+i, 0.3-i);
+		glTranslatef(0, 2.05 + i, 0.3 - i);
 		glRotatef(90, 0, 1, 0);
 		glRotatef(-90, 1, 0, 0);
 		glScalef(1.4, 1.3, .5);
@@ -1038,7 +1057,7 @@ void leftArm() {
 	glRotatef(25, 0, 1, 0);
 	for (float i = 0.5; i < 1; i += 0.1) {
 		glPushMatrix();
-		glTranslatef(-1.6 - i, 0.5, -1+ i * 1.3);
+		glTranslatef(-1.6 - i, 0.5, -1 + i * 1.3);
 		glScalef(1, 1, 1);
 		drawSphereWithNormalSmooth(quadIndex);
 		quadIndex += 2628;
@@ -1058,7 +1077,7 @@ void rightArm() {
 	for (float i = 0; i < 0.5; i += 0.05) {
 
 		glPushMatrix();
-		glTranslatef(1.5 +i, 0.5, 0 + i);
+		glTranslatef(1.5 + i, 0.5, 0 + i);
 		glScalef(1, 1, 1);
 		drawSphereWithNormalSmooth(quadIndex);
 		quadIndex += 2628;
@@ -1068,7 +1087,7 @@ void rightArm() {
 	glRotatef(-25, 0, 1, 0);
 	for (float i = 0.5; i < 1; i += 0.1) {
 		glPushMatrix();
-		glTranslatef(1.6 +i, 0.5, -1 + i * 1.3);
+		glTranslatef(1.6 + i, 0.5, -1 + i * 1.3);
 		glScalef(1, 1, 1);
 		drawSphereWithNormalSmooth(quadIndex);
 		quadIndex += 2628;
@@ -1132,7 +1151,7 @@ void rightLeg() {
 	glPushMatrix();
 	glTranslatef(0.3, 0, 0.3);
 	glRotatef(15, -1, 1, 0);
-	for (float i =0.5; i < 1; i += 0.1) {
+	for (float i = 0.5; i < 1; i += 0.1) {
 		glPushMatrix();
 		glTranslatef(-1.6 - i, 0.5, -1 + i * 1.3);
 		glScalef(1, 1, 1);
@@ -1149,4 +1168,338 @@ void rightLeg() {
 void leftFoot() {
 
 }
+//void drawPikachu() {
+//	mainBody();
+//	lowerBody();
+//	leftLegCheek();
+//	rightLegCheek();
+//	head();
+//	//noseArea();
+//	rightHand();
+//	leftHand();
+//	leftEar();
+//	rightEar();
+//	leftEyes();
+//	rightEyes();
+//	nose();
+//	tail();
+//	leftCheek();
+//	rightCheek();
+//};
+//void mainBody() {
+//
+//	//main body
+//	glPushMatrix();
+//	glTranslatef(0, 0, -2.0);
+//	//glRotatef(0, 0, 0, -1);
+//	glScalef(1.1, 2, 0.95);
+//	drawCylinder(1, 1, 1, 1, 1);
+//	glPopMatrix();
+//}
+//void lowerBody() {
+//	//lower body
+//	glPushMatrix();
+//	glTranslatef(0, .25, -2.0);
+//	glScalef(1.1, 1.1, 1.0);
+//	drawSphereWithNormalSmooth(1);
+//	glPopMatrix();
+//}
+//void leftLegCheek() {
+//	//left leg cheek
+//	glPushMatrix();
+//	glTranslatef(-.45, -0.1, -2.0);
+//	glRotatef(2, 1, 0, 0);
+//	glScalef(0.8, 0.8, 1.0);
+//	drawSphereWithNormalSmooth(1);
+//
+//	glPushMatrix();
+//	glTranslatef(0, -1.25, 0.0);
+//	glScalef(0.3, 0.5, 0.3);
+//	drawCylinder(1, 1, 1, 1, 1);
+//	glPopMatrix();
+//
+//	glPushMatrix();
+//	glScalef(0.35, 0.2, 0.5);
+//	glTranslatef(0, -6, 0.75);
+//	glRotatef(90, 1, 0, 0);
+//	drawCylinder(1, 1, 0.95, 0.95, 1);
+//	drawSphereWithNormalSmooth(1);
+//
+//	glTranslatef(0, 1.1, 0.0);
+//	glScalef(1, 0.3, 1);
+//	drawSphereWithNormalSmooth(0.95);
+//	glPopMatrix();
+//
+//	glPopMatrix();
+//}
+//void rightLegCheek() {
+//	//right Leg cheek
+//	glPushMatrix();
+//	glTranslatef(.45, -0.1, -2.0);
+//	glRotatef(2, 1, 0, 0);
+//	glScalef(0.8, 0.8, 1.0);
+//	drawSphereWithNormalSmooth(1);
+//
+//	glPushMatrix();
+//	glTranslatef(0, -1.25, 0.0);
+//	glScalef(0.3, 0.5, 0.3);
+//	drawCylinder(1, 1, 1, 1, 1);
+//	glPopMatrix();
+//
+//	glPushMatrix();
+//	glScalef(0.35, 0.2, 0.5);
+//	glTranslatef(0, -6, 0.75);
+//	glRotatef(90, 1, 0, 0);
+//	drawCylinder(1, 1, 0.95, 0.95, 1);
+//	drawSphereWithNormalSmooth(1);
+//
+//	glTranslatef(0, 1.1, 0.0);
+//	glScalef(1, 0.3, 1);
+//	drawSphereWithNormalSmooth(0.95);
+//	glPopMatrix();
+//
+//	glPopMatrix();
+//}
+//void head() {
+//
+//	//head
+//	glPushMatrix();
+//	glPushAttrib(GL_ALL_ATTRIB_BITS);
+////	glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emission);  // add a fixed color
+//	glTranslatef(0, 2, -2);
+//	glScalef(1.2, 1.1, 1.1);
+//	drawSphereWithNormalSmooth(1);
+//	glPopAttrib();
+//	glPopMatrix();
+//}
+//void noseArea() {
+//	//nose
+//	glPushMatrix();
+//	glTranslatef(0, 2, -1.2);
+//	glScalef(0.7, 0.5, 0.4);
+//	drawSphereWithNormalSmooth(1);
+//	glPopMatrix();
+//}
+//void rightHand() {
+//	//hand right
+//	glPushMatrix();
+//	glTranslatef(1.5, 2, -2.0);
+//	//glRotatef(20, 1, 0, 0);
+//	glRotatef(150, 0, 0, 1);
+//	glScalef(0.2, 1.0, 0.25);
+//	drawCylinder(1, 1, 1, 1, 1);
+//
+//	glPushMatrix();
+//	glTranslatef(0, 1, 0);
+//	glScalef(1, 0.5, 1);
+//	drawSphereWithNormalSmooth(1);
+//	glPopMatrix();
+//
+//	glPushMatrix();
+//	glScalef(1.1, 0.3, 1.1);
+//	glTranslatef(0, -.4, 0);
+//	drawSphereWithNormalSmooth(1);
+//	glPopMatrix();
+//	glPopMatrix();
+//}
+//void leftHand() {
+//
+//	//hand left
+//	glPushMatrix();
+//	glTranslatef(-2, 1.2, -2.0);
+//	//glRotatef(2, -1, 0, 0);
+//	glRotatef(-90, 0, 0, 1);
+//	glScalef(0.2, 1.0, 0.25);
+//	drawCylinder(1, 1, 1, 1, 1);
+//
+//	glPushMatrix();
+//	glTranslatef(0, 1, 0);
+//	glScalef(1, 0.5, 1);
+//	drawSphereWithNormalSmooth(1);
+//	glPopMatrix();
+//
+//	glPushMatrix();
+//	glScalef(1.1, 0.3, 1.1);
+//	glTranslatef(0, -.4, 0);
+//	drawSphereWithNormalSmooth(1);
+//	glPopMatrix();
+//	glPopMatrix();
+//}
+//void leftEar() {
+//
+//
+//
+//	//left ear
+//	glPushMatrix();
+//	glTranslatef(-0.6, 2.8, -2.0);
+//	glRotatef(2, 1, 1, 1);
+//	glScalef(0.25, 1, 0.1);
+//	drawCylinder(1, 1, 1, 1, 1);
+//
+//	glPushMatrix();
+//	glTranslatef(0, 1, 0);
+//	drawSphereWithNormalSmooth(1);
+//	glPopMatrix();
+//	glPopMatrix();
+//}
+//void rightEar() {
+//	//right ear
+//	glPushMatrix();
+//	glTranslatef(0.6, 2.8, -2.0);
+//	glRotatef(2, 1, 1, 1);
+//	glScalef(0.25, 1, 0.1);
+//	drawCylinder(1, 1, 1, 1, 1);
+//
+//	glPushMatrix();
+//	glTranslatef(0, 1, 0);
+//	drawSphereWithNormalSmooth(1);
+//	glPopMatrix();
+//	glPopMatrix();
+//}
+//void leftEyes() {
+//
+//
+//	//left eyes
+//	glPushMatrix();
+//	glTranslatef(-0.4, 2.5, -1.1);
+//	glRotatef(-30, 0, 0, -1);
+//	glRotatef(-30, 1, 0, 0);
+//	glRotatef(90, 1, 0, 0);
+//	glScalef(0.3, 0.1, 0.3);
+//	drawSphereWithNormalSmooth(1);
+//
+//	glPushMatrix();
+//	glRotatef(-40, -1, 0, 1);
+//	glTranslatef(0, -0.8, 0);
+//	glScalef(0.3, 0.4, 0.2);
+//	drawSphereWithNormalSmooth(1);
+//	glPopMatrix();
+//	glPopMatrix();
+//}
+//void rightEyes() {
+//	//right eyes
+//	glPushMatrix();
+//	glTranslatef(0.4, 2.5, -1.1);
+//	glRotatef(-30, 0, 0, 1);
+//	glRotatef(-30, 1, 0, 0);
+//	glRotatef(90, 1, 0, 0);
+//	glScalef(0.3, 0.1, 0.3);
+//	drawSphereWithNormalSmooth(1);
+//
+//	glPushMatrix();
+//	glRotatef(-40, -1, 0, 1);
+//	glTranslatef(-0.3, -0.8, 0);
+//	glScalef(0.3, 0.4, 0.2);
+//	drawSphereWithNormalSmooth(1);
+//	glPopMatrix();
+//	glPopMatrix();
+//}
+//void nose() {
+//
+//	//nose
+//	glPushMatrix();
+//	glTranslatef(0, 2.2, -0.8);
+//	glRotatef(90, 1, 0, 0);
+//	glRotatef(45, 0, 1, 0);
+//	glScalef(0.5, 0.5, 0.5);
+//	drawPyramid();
+//	glPopMatrix();
+//
+//}
+//void tail() {
+//	//tails
+//	glPushMatrix();
+//	glTranslatef(0, -0.4, -2);
+//	glRotatef(50, 1, 0, 0);
+//	glScalef(0.1, 0.5, 1.5);
+//
+//	glTranslatef(0, 0.5, -0.5);
+//	glScalef(1.2, 1.2, 1.2);
+//	glRotatef(-20, 1, 0, 0);
+//	cube(.25);
+//
+//	glTranslatef(0, -0.3, -0.3);
+//	glScalef(1.2, 1.2, 1.5);
+//	cube(.25);
+//
+//
+//	glTranslatef(0, -0.3, -0.3);
+//	glScalef(1.2, 1.2, 1.5);
+//	cube(.25);
+//
+//	glTranslatef(0, -0.3, -0.3);
+//	glScalef(1.2, 1.2, 1.5);
+//	cube(.25);
+//	glPopMatrix();
+//}
+//void leftCheek() {
+//
+//	//left cheek
+//	glPushMatrix();
+//	glTranslatef(-0.7, 2.0, -1.1);
+//	glRotatef(-90, 0, 0, 1);
+//	glRotatef(50, 1, 0, 0);
+//	glRotatef(-100, 1, 0, 0);
+//	glScalef(0.2, 0.1, 0.2);
+//	drawSphereWithNormalSmooth(1);
+//	glPopMatrix();
+//}
+//void rightCheek() {
+//
+//
+//	//right cheek
+//	glPushMatrix();
+//	glTranslatef(0.7, 2.0, -1.1);
+//	glRotatef(-90, 0, 0, -1);
+//	glRotatef(50, 1, 0, 0);
+//	glRotatef(-100, 1, 0, 0);
+//	glScalef(0.2, 0.1, 0.2);
+//	drawSphereWithNormalSmooth(1);
+//	glPopMatrix();
+//}
+
+
+//void drawSphereWithNormalSmooth(GLfloat radius)
+//{
+//	GLint longitude = 5, latitude = 5;
+//	GLint phi, theta;
+//	GLfloat p1[3], p2[3], p3[3], p4[3];
+//	float invR = 1 / radius;
+//
+//	glBegin(GL_QUADS);
+//	for (phi = -90; phi <= 90 - latitude; phi += latitude)
+//	{
+//		for (theta = -180; theta <= 180; theta += longitude)
+//		{
+//			p1[0] = radius * cos(theta * DtoR) * cos(phi * DtoR);
+//			p1[1] = radius * sin(theta * DtoR) * cos(phi * DtoR);
+//			p1[2] = radius * sin(phi * DtoR);
+//
+//			p2[0] = radius * cos((theta + longitude) * DtoR) * cos(phi * DtoR);
+//			p2[1] = radius * sin((theta + longitude) * DtoR) * cos(phi * DtoR);
+//			p2[2] = radius * sin(phi * DtoR);
+//
+//			p3[0] = radius * cos((theta + longitude) * DtoR) * cos((phi + latitude) * DtoR);
+//			p3[1] = radius * sin((theta + longitude) * DtoR) * cos((phi + latitude) * DtoR);
+//			p3[2] = radius * sin((phi + latitude) * DtoR);
+//
+//			p4[0] = radius * cos(theta * DtoR) * cos((phi + latitude) * DtoR);
+//			p4[1] = radius * sin(theta * DtoR) * cos((phi + latitude) * DtoR);
+//			p4[2] = radius * sin((phi + latitude) * DtoR);
+//
+//			glNormal3f(p1[0] * invR, p1[1] * invR, p1[2] * invR); // could be set up for every vertex
+//			glVertex3fv(p1);
+//			glNormal3f(p2[0] * invR, p2[1] * invR, p2[2] * invR);
+//			glVertex3fv(p2);
+//			glNormal3f(p3[0] * invR, p3[1] * invR, p3[2] * invR);
+//			glVertex3fv(p3);
+//			glNormal3f(p4[0] * invR, p4[1] * invR, p4[2] * invR);
+//			glVertex3fv(p4);
+//		}
+//
+//	}
+//	glEnd();
+
+//}
+
 
