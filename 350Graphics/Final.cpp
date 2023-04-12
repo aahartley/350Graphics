@@ -469,6 +469,10 @@ void init(void)
 		createSphereWithNormalSmooth(0.5);
 	}
 
+	for (int i = 0; i < 1000; i++) {
+		createSphereWithNormalSmooth(1);
+
+	}
 }
 
 
@@ -1000,10 +1004,15 @@ void rightLeg() {
 	}
 	glPopMatrix();
 	glPopMatrix();
-	quadIndex = 0;
 
 }
 void leftFoot() {
+	glPushMatrix();
+	glTranslatef(5, 0, 5);
+	drawSphereWithNormalSmooth(quadIndex);
+	quadIndex += 2628;
+	glPopMatrix();
+	quadIndex = 0;
 
 }
 
@@ -1025,6 +1034,8 @@ void shell() {
 	float zEnd = 1;
 	float radiusBack = 2;
 	float shellIncrement = .25;
+	glBegin(GL_QUADS);
+
 	for (int i = 0; i < n; i++) {
 		p1[0] = radiusFront * cos(i * angle);
 		p1[1] = radiusFront * sin(i * angle);
@@ -1069,13 +1080,13 @@ void shell() {
 		normal(p1, p2, p3, norm);
 
 		glNormal3fv(norm);
-		glBegin(GL_POLYGON);
 		glVertex3fv(p1);
 		glVertex3fv(p2);
 		glVertex3fv(p3);
 		glVertex3fv(p4);
-		glEnd();
 	}
+		glEnd();
+
 	//-----------------------------------------------------------
 	//-----------------------------------------------------------
 	//draw shell top
