@@ -212,6 +212,7 @@ void main()
 		if (b[0] != 'P' || b[1] != '3')
 		{
 			printf("%s is not a PPM file!\n", b);
+			std::cout << "wrong" << '\n';
 			exit(0);
 		}
 		printf("%s is a PPM file\n", b);
@@ -242,8 +243,10 @@ void main()
 			image[3 * nm - 3 * i - 1] = blue * s;
 		}
 	}
-	else
+	else {
 		printf("Can not open the file.\n");
+		image = nullptr;
+	}
 
 	
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB); // GLUT_DOUBLE work with glutPostRedisplay

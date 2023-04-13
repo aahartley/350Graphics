@@ -338,6 +338,7 @@ void rightArm();
 void shell();
 void leftLeg();
 void rightLeg();
+void leftLegCheek();
 void leftFoot();
 void drawSquirtle();
 
@@ -468,6 +469,10 @@ void init(void)
 	for (int i = 0; i < 50; i++) {  //arms,legs
 		createSphereWithNormalSmooth(0.5);
 	}
+	createSphereWithNormalSmooth(1);
+	createSphereWithNormalSmooth(1);
+	createSphereWithNormalSmooth(.95); 
+
 
 	for (int i = 0; i < 1000; i++) {
 		createSphereWithNormalSmooth(1);
@@ -688,6 +693,7 @@ void drawSquirtle() {
 	rightArm();
 	leftLeg();
 	rightLeg();
+	leftLegCheek();
 	leftFoot();
 }
 
@@ -1016,6 +1022,35 @@ void leftFoot() {
 
 }
 
+void leftLegCheek() {
+	//left leg cheek
+	//glPushMatrix();
+	//glTranslatef(-.45, -3, -2.0);
+	//glRotatef(2, 1, 0, 0);
+	//glScalef(0.8, 0.8, 1.0);
+	//drawSphereWithNormalSmooth(quadIndex);
+	//quadIndex += 2628;
+
+	//glPushMatrix();
+	//glTranslatef(0, -1.25, 0.0);
+	//glScalef(0.3, 0.5, 0.3);
+	//drawCylinder(1, 1, 1, 1, 1);
+	//glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(-1, -3.2, -0.1);
+	glRotatef(90, 1, 0, 0);
+	glScalef(0.5, 0.6, 0.3);
+	drawCylinder(1, 1, 0.95, 0.95, 1);
+	drawSphereWithNormalSmooth(quadIndex);
+	quadIndex += 2628;
+
+	glTranslatef(0, 1.1, 0.0);
+	glScalef(1, 1, 1);
+	//drawSphereWithNormalSmooth(quadIndex);
+	glPopMatrix();
+	quadIndex += 2628;
+}
 void shell() {
 	float angle = 2 * 3.14159 / 100;//3.6 d
 	angle = 3.14159 / 4;
