@@ -8,11 +8,13 @@
 GLsizei ww = 700, wh = 700;
 GLfloat increment = 0.01;
 
+void right_menu(int);
 
 const float REGION_DIM = 100;
 //const GLfloat DtoR = 0.017453;
 GLfloat fov = 45.0, aspect = 1;
 GLfloat theta = 30, phi = 60, rho = 10;
+float camTheta = 0, camPhi = 90, camRho = 15;
 float theta2 = 30;
 float headTheta = 0;
 float leftLegTheta = 0;
@@ -20,7 +22,8 @@ float rightLegTheta = 0;
 float leftArmTheta = 0;
 float rightArmTheta = 0;
 float sx = 0, sy = 0, sz = 0;
-
+float bubbleZ= 0;
+float bubbleSpeed = 0.1;
 bool attack = false;
 bool walkToSpot = false;
 bool rightArmUp = false;
@@ -28,10 +31,14 @@ bool leftArmUp = false;
 bool rightLegUp = false;
 bool leftLegUp = false;
 bool headUp = false;
+bool cam1 = false;
+bool sphereCam = true;
+bool fpsCam = false;
+bool rotateLights = false;
+bool animation = false;
 GLfloat dTheta = 5, dPhi = 5, dRho = 0.5;
 GLfloat alpha = 0, beta = 0, gama = 0;
 GLfloat dAlpha = 5, dBeta = 5, dGama = 5;
-GLfloat a = 1.0, b = 1.0, c = 1.0;
 GLfloat dA = 0.1, dB = 0.1, dC = 0.1;
 GLfloat direction = 1.0;
 
@@ -41,23 +48,34 @@ GLfloat left, right, bottom, top, _near = 0.01, _far = 200;
 
 float xangle = 0, yangle = 1, zangle = -1;
 
-float x = 0, y = 2, z = 0.0f;
+float x = 0, y = 2, z = 4.0f;
 float sens = 0.01f;
 float xPos = 0, yPos = 0;
 
+float cam1Zoom = 30;
+float cam1Height = 15;
+float cam1Increment = 0.1;
+
+float cam3Shake = -1.0f;
+bool cam2 = false;
+bool cam3 = false;
+bool cam4 = false;
+bool cam5 = false;
+bool cam6 = false;
+bool reset = false;
+int cam5Count = 0;
+int cam6Count = 0;
+float cam6Height = 2;
+float cam6Look = 2;
 
 
-float legtheta = 90;
 GLfloat global_ambient[] = { 1, 0.0, 0.0, 1.0 };  // independent of any of the sources
 GLfloat emission[] = { 1, 1, 1 };
-
 GLfloat lightPos[] = { 0, 3, 5, 1};
+GLfloat lightPos2[] = { 0, 3, 5, 0 };
 
-struct Triangle {
-	float* p1;
-	float* p2;
-	float* p3;
-	float* normal;
+struct Vector3f {
+	float x, y, z;
 };
 struct Quad {
 	float v1[3];
@@ -75,9 +93,6 @@ struct Quad {
 };
 int quadIndex = 0;
 int quadIndexHalf = 0;
-struct Vector3f {
-	float x, y, z;
-};
 
 typedef struct materialStruct {
 	GLfloat ambient[4];
@@ -105,6 +120,12 @@ materialStruct blueMaterials = {
 	{0., 0.0, 0.6, 1.0},
 	{0.0, 0.0, 0.4, 1.0},
 	{0.0, 0.6, 0.1, 1.0},
+	2.0
+};
+materialStruct blueMaterials2 = {
+	{0., 0.0, 0.6, 0.1},
+	{0.0, 0.0, 0.4, 0.1},
+	{0.0, 0.6, 0.1, 0.1},
 	2.0
 };
 
@@ -156,31 +177,6 @@ void lighting(lightingStruct* li)
 	glLightfv(GL_LIGHT0, GL_AMBIENT, li->ambient);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, li->diffuse);
 	glLightfv(GL_LIGHT0, GL_SPECULAR, li->specular);
-}
-float* normal(float p0[], float p1[], float p2[])
-{
-	float* n = new float[3];
-	float a[3], b[3];
-	float d;
-
-	for (int i = 0; i < 3; i++)
-	{
-		a[i] = p1[i] - p0[i];
-		b[i] = p2[i] - p0[i];
-	}
-
-	n[0] = a[1] * b[2] - a[2] * b[1];
-	n[1] = a[2] * b[0] - a[0] * b[2];
-	n[2] = a[0] * b[1] - a[1] * b[0];
-
-	d = sqrt(n[0] * n[0] + n[1] * n[1] + n[2] * n[2]);
-
-	if (d == 0)
-		d = 1;
-
-	for (int i = 0; i < 3; i++)
-		n[i] = n[i] / d;
-	return n;
 }
 std::vector<Quad> sphereQuads;
 std::vector<Quad> halfSphereQuads;
@@ -324,33 +320,8 @@ void drawHalfSphereWithNormalSmooth(int index)
 	glEnd();
 
 }
-std::vector<float*> verts;
-std::vector<Triangle> triangles;
 
-void genplane(float* offset, bool build, int vertsPerRow) {
-	verts.push_back(offset);
-	if (build) {
-		int base = verts.size() - 1;
-		int index0 = base;
-		int index1 = base - 1;
-		int index2 = base - vertsPerRow;
-		int index3 = base - vertsPerRow - 1;
 
-		Triangle tmp;
-		tmp.p1 = verts[index0];
-		tmp.p2 = verts[index2];
-		tmp.p3 = verts[index1];
-		tmp.normal = normal(tmp.p1,tmp.p2,tmp.p3);
-		triangles.push_back(tmp);
-
-		Triangle tmp2;
-		tmp2.p1 = verts[index2];
-		tmp2.p2 = verts[index3];
-		tmp2.p3 = verts[index1];
-		tmp2.normal = normal(tmp2.p1, tmp2.p2, tmp2.p3); //3,1,2
-		triangles.push_back(tmp2);
-	}
-}
 
 
 void head2();
@@ -379,28 +350,60 @@ void display()
 	glLoadIdentity();
 	materials(currentMaterials);
 	lighting(currentLighting);
-	gluLookAt(rho * sin(theta * DtoR) * sin(phi * DtoR), rho * cos(phi * DtoR), rho * cos(theta * DtoR) * sin(phi * DtoR), 0, 0, 0, 0, 1, 0);
-	/*glPushMatrix();
-	glRotatef(theta2,1,0,0);
-	glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
-	glPopMatrix();*/
+	if (cam1) {
+		//luLookAt(camRho * sin(camTheta * DtoR) * sin(camPhi * DtoR), camRho * cos(camPhi * DtoR), camRho * cos(camTheta * DtoR) * sin(camPhi * DtoR), 0, 3, 0, 0, 1, 0);
+		gluLookAt(0, cam1Height, cam1Zoom, 0, 0, 0, 0, 1, 0); 
+		
+	}
+	else if (cam2) {
+		gluLookAt(camRho * sin(camTheta * DtoR) * sin(camPhi * DtoR), cam1Height + camRho * cos(camPhi * DtoR), camRho * cos(camTheta * DtoR) * sin(camPhi * DtoR), 0, 0, 0, 0, 1, 0);
+
+	}
+	else if (cam3) {
+		//std::cout << cam3Shake << '\n';
+		gluLookAt(0,cam1Height-5,cam1Zoom, 0, 0, 0, 0, 1, 0);
+
+	}
+	else if (cam4) {
+		//std::cout << cam3Shake << '\n';
+		gluLookAt(0, cam1Height-6, cam1Zoom, 0, 0, 2, 0, 1, 0);
+
+	}
+	else if (cam5) {
+		//std::cout << cam3Shake << '\n';
+		//std::cout << "cam5 " << cam5Count << '\n';
+
+		gluLookAt(cam3Shake, cam1Height - 6, cam1Zoom, 0, 0, 2, 0, 1, 0);
+
+	}
+	else if (cam6) {
+		gluLookAt(0, cam6Height, cam1Zoom, 0, cam6Look, 0, 0, 1, 0);
+
+	}
+	else {
+		if (sphereCam)
+			gluLookAt(rho * sin(theta * DtoR) * sin(phi * DtoR), rho * cos(phi * DtoR), rho * cos(theta * DtoR) * sin(phi * DtoR), 0, 0, 0, 0, 1, 0);
+		else if (fpsCam)
+			gluLookAt(x, y, z, x + xangle, y - yangle, z + zangle, 0, 1, 0);
+		else
+			gluLookAt(8, 8, 12, 0, 0, 0, 0, 1, 0); // for perspective view
+		if (rotateLights) {
+			glPushMatrix();
+			glRotatef(theta2, 1, 0, 0);
+			glLightfv(GL_LIGHT0, GL_POSITION, lightPos2);
+			glPopMatrix();
+		}
+	}
+
+
 	
 	//std::cout << x+xangle  << ' ' << y-yangle << ' ' << z+zangle << '\n';
-	//gluLookAt(x, y, z, x + xangle, y - yangle, z + zangle, 0, 1, 0);
-	//gluLookAt(8, 8, 12, 0, 0, 0, 0, 1, 0); // for perspective view
-	axes(7.5);
-	//for (int i = 0; i < triangles.size(); i++) {
-	//	glNormal3f(0,1,0);
-	//	glNormal3fv(triangles[i].normal);
-	//	glBegin(GL_TRIANGLES);
-	//	glVertex3fv(triangles[i].p1);
-	//	glVertex3fv(triangles[i].p2);
-	//	glVertex3fv(triangles[i].p3);
-	//	glEnd();
 
-	//}
+	axes(7.5);
+
 
 	drawSquirtle();
+	
 
 	glutSwapBuffers();
 	if(!walkToSpot)
@@ -459,18 +462,7 @@ void init(void)
 
 	glMatrixMode(GL_MODELVIEW);
 	
-	for (int i = 0; i <= 10; i++) {
-		float z = 3 * i;
-		for (int j = 0; j <= 10; j++) {
-			float x = 3 * j;
-			float* offset = new float[3];
-			offset[0] = x;
-			offset[1] = std::rand() % 2;
-			offset[2] = z;
-			bool build = i > 0 && j > 0;
-			genplane(offset, build, 10 + 1);
-		}
-	}
+
 
 	createHalfSphereWithNormalSmooth(1);//head2
 	createHalfSphereWithNormalSmooth(1);
@@ -568,7 +560,7 @@ void init(void)
 
 	//bubbles
 	
-	for (int i = 0; i < 10; i++) {
+	for (int i = 0; i < 15; i++) {
 		createSphereWithNormalSmooth(1);
 
 	}
@@ -616,7 +608,53 @@ void idle()
 	theta2 += 14.92 * increment;
 	if (theta2 > 360) theta2 -= 360;
 
+	if (cam1) {
+		cam1Height -= cam1Increment;
+		cam1Zoom -= cam1Increment;
+		if (cam1Zoom < 15)cam1Zoom = 15;
+		if (cam1Height < 8)cam1Height = 8;
+		if (cam1Zoom == 15 && cam1Height == 8) { cam2 = true; cam1 = false; }
+	}
+	else if (cam2) {
+		camTheta += 120 * increment;
+		if (camTheta > 360) {
+			camTheta -= 360;
+			cam2 = false;
+			cam3 = true;
+		}
 
+	}
+	else if (cam5) {
+		if (cam5Count < 5) {
+			if (cam3Shake == -1.0f)cam3Shake = 1.0f;
+			else if (cam3Shake == 1.0f)cam3Shake = -1.0f;
+			cam5Count++;
+
+		}
+		else {
+			cam5 = false;
+			cam6 = true;
+		}
+
+	}
+	else if (cam6) {
+		cam6Height -= cam1Increment;
+		cam6Look += cam1Increment;
+		if (cam6Height <= -3) {
+			cam6Height = -3;
+		}
+		if (cam6Look >= 10) {
+			cam6Look = 10;
+
+		}
+		cam6Count++;
+		if (cam6Count >= 100)cam6Count = 100;
+
+		if (cam6Look == 10 && cam6Height == -3 && cam6Count==100) {
+			cam6 = false;
+			animation = false;
+		}
+	}
 	//if (!headUp) {
 	//	headTheta += 14.92 * increment;
 	//}
@@ -625,60 +663,72 @@ void idle()
 	//	headTheta -= 14.92 * increment;
 	//	if (headTheta <= 0)headUp = false;
 	//}
-	if (walkToSpot) {
-		if (!leftLegUp) {
-			leftLegTheta += 14.92 * increment;
-			sz += 0.01;
-		}
-		if (leftLegTheta > 15 || leftLegUp) {
-			leftLegUp = true;
-			sz += 0.01;
-			leftLegTheta -= 14.92 * increment;
-			if (leftLegTheta <= -15) {
-				leftLegUp = false;
-				sz += .01;
-			}
-		}
+	if (animation) {
+	
+		if (walkToSpot && !cam1 && !cam2) {
 
-		if (!rightLegUp) {
-			rightLegTheta += 14.92 * increment;
-			sz += 0.01;
-		}
-		if (rightLegTheta > 15 || rightLegUp) {
-			rightLegUp = true;
-			sz += 0.01;
-			rightLegTheta -= 14.92 * increment;
-			if (rightLegTheta <= -15) {
-				rightLegUp = false;
+			if (!leftLegUp) {
+				leftLegTheta += 14.92 * increment;
 				sz += 0.01;
 			}
-		}
+			if (leftLegTheta > 15 || leftLegUp) {
+				leftLegUp = true;
+				sz += 0.01;
+				leftLegTheta -= 14.92 * increment;
+				if (leftLegTheta <= -15) {
+					leftLegUp = false;
+					sz += .01;
+				}
+			}
 
-		if (!leftArmUp) {
-			leftArmTheta += 14.92 * increment;
-		}
-		if (leftArmTheta > 15 || leftArmUp) {
-			leftArmUp = true;
-			leftArmTheta -= 14.92 * increment;
-			if (leftArmTheta <= -15)leftArmUp = false;
-		}
+			if (!rightLegUp) {
+				rightLegTheta += 14.92 * increment;
+				sz += 0.01;
+			}
+			if (rightLegTheta > 15 || rightLegUp) {
+				rightLegUp = true;
+				sz += 0.01;
+				rightLegTheta -= 14.92 * increment;
+				if (rightLegTheta <= -15) {
+					rightLegUp = false;
+					sz += 0.01;
+				}
+			}
 
-		if (!rightArmUp) {
-			rightArmTheta += 10.92 * increment;
+			if (!leftArmUp) {
+				leftArmTheta += 14.92 * increment;
+			}
+			if (leftArmTheta > 15 || leftArmUp) {
+				leftArmUp = true;
+				leftArmTheta -= 14.92 * increment;
+				if (leftArmTheta <= -15)leftArmUp = false;
+			}
+
+			if (!rightArmUp) {
+				rightArmTheta += 10.92 * increment;
+			}
+			if (rightArmTheta > 15 || rightArmUp) {
+				rightArmUp = true;
+				rightArmTheta -= 10.92 * increment;
+				if (rightArmTheta <= -15)rightArmUp = false;
+			}
+			if (sz >= 10) {
+				sz = 10;
+				walkToSpot = false;
+				attack = true;
+				cam3 = false;
+				cam4 = true;
+
+			}
+
 		}
-		if (rightArmTheta > 15 || rightArmUp) {
-			rightArmUp = true;
-			rightArmTheta -= 10.92 * increment;
-			if (rightArmTheta <= -15)rightArmUp = false;
-		}
-		if (sz >= 2) {
-			sz = 2;
-			walkToSpot = false;
+		if (!attack && !walkToSpot && sz == 10 && !cam6) {
+			cam4 = false;
+			cam5 = true;
 		}
 	}
 	//sz = 0;
-	//legtheta -= 14.92 * increment;
-	//if (legtheta < 80) legtheta = 90;
+
 	glutPostRedisplay();
 	//alpha += 14.92 * increment;
 	//if (alpha > 360) alpha -= 360;
@@ -699,35 +749,41 @@ void mouse(int button, int state, int x, int y)
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
 	{
 		alpha += dAlpha * direction;
+		if (alpha > 360)alpha = 0;
 	}
 	else if (button == GLUT_MIDDLE_BUTTON && state == GLUT_DOWN)
 	{
 		beta += dBeta * direction;
+		if (beta > 360)beta = 0;
+
 	}
 	else if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN)
 	{
 		gama += dGama * direction;
+		if (gama > 360)gama = 0;
+
 	}
 }
 void mouseMove(int x, int y) {
-	
-	float xx, yy;
-	xx = x;
-	yy = y;
-	if (xx >= ww - 2)xx = 3;
-	else if (xx <= 2) xx = ww-3;
-	if (xx != x || yy != y)glutWarpPointer(xx, yy);
-	xPos = (xx - ww / 2) * sens;
-	yPos = (yy - wh / 2) * sens;
+	if (fpsCam) {
+		float xx, yy;
+		xx = x;
+		yy = y;
+		if (xx >= ww - 2)xx = 3;
+		else if (xx <= 2) xx = ww - 3;
+		if (xx != x || yy != y)glutWarpPointer(xx, yy);
+		xPos = (xx - ww / 2) * sens;
+		yPos = (yy - wh / 2) * sens;
 
-	xangle = std::sin(xPos);
-	yangle = std::sin(yPos);
-	zangle = -std::cos(xPos);
-	//std::cout << xangle << ' ' << zangle << '\n';
+		xangle = std::sin(xPos);
+		yangle = std::sin(yPos);
+		zangle = -std::cos(xPos);
+		//std::cout << xangle << ' ' << zangle << '\n';
 
-	if (std::abs(yPos)>=1.57){
-		int sign = yPos > 0 ? 1 : -1;
-		yangle = 1 * sign;
+		if (std::abs(yPos) >= 1.57) {
+			int sign = yPos > 0 ? 1 : -1;
+			yangle = 1 * sign;
+		}
 	}
 }
 void keys(unsigned char k, int xx, int yy)
@@ -738,6 +794,10 @@ void keys(unsigned char k, int xx, int yy)
 		direction = 1.0;
 	else if (k == 'n' || k == 'N')
 		direction = -1.0;
+	else if (k == 'g' || k == 'G') {
+		gama += dGama * direction;
+		if (gama > 360)gama = 0;
+	}
 	else if (k == 'a' || k == 'A') {
 		x += zangle * speed;
 		z -= xangle * speed;
@@ -759,13 +819,12 @@ void keys(unsigned char k, int xx, int yy)
 
 	}
 	//a += dA * direction;
-	else if (k == 'b' || k == 'B')
-		b += dB * direction;
-	else if (k == 'c' || k == 'C')
-		c += dC * direction;
+
 	else if (k == 'i' || k == 'I') {
 	glutIdleFunc(idle);
 	walkToSpot = true;
+	cam1 = true;
+	animation = true;
 	}
 	else if (k == 'q' || k == 'Q')
 		glutIdleFunc(NULL);
@@ -783,9 +842,10 @@ void keys(unsigned char k, int xx, int yy)
 		alpha = 0;
 		beta = 0;
 		gama = 0;
-		a = 1;
-		b = 1;
-		c = 1;
+		animation = false;
+		rotateLights = false;
+		lighting(currentLighting);
+		glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
 		direction = 1.0;
 		x = 0;
 		y = 2;
@@ -793,7 +853,7 @@ void keys(unsigned char k, int xx, int yy)
 		xangle = 0;
 		yangle = 1;
 		zangle = -1;
-		glutIdleFunc(NULL);
+		glutIdleFunc(idle);
 	}
 }
 
@@ -817,7 +877,23 @@ void specialKeys(int k, int x, int y)
 	}
 }
 
+void right_menu(int id)
+{
+	if (id == 1) {
+		sphereCam = true;
+		fpsCam = false;
+	}
+	else if (id==2) {
+		fpsCam = true; 
+		sphereCam = false;
+	}
+	else {
+		if (rotateLights) { rotateLights = false; }
+		else { rotateLights = true; }
+		
 
+	}
+}
 
 int main(int argc, char** argv)
 {
@@ -830,10 +906,15 @@ int main(int argc, char** argv)
 	glutDisplayFunc(display);
 	glutReshapeFunc(reshape);
 	glutMouseFunc(mouse);
-	//glutPassiveMotionFunc(mouseMove);
+	glutPassiveMotionFunc(mouseMove);
 	glutKeyboardFunc(keys);
 	glutSpecialFunc(specialKeys);
-	//glutIdleFunc(idle);
+	glutIdleFunc(idle);
+	glutCreateMenu(right_menu);
+	glutAddMenuEntry("Sphere Camera", 1);
+	glutAddMenuEntry("FPS Camera", 2);
+	glutAddMenuEntry("Rotate Lights", 3);
+	glutAttachMenu(GLUT_RIGHT_BUTTON);
 	init();
 	glutMainLoop();
 
@@ -842,6 +923,10 @@ int main(int argc, char** argv)
 
 void drawSquirtle() {
 	glPushMatrix();
+	glRotatef(alpha, 1, 0,0);
+	glRotatef(beta, 0, 1, 0);
+	glRotatef(gama, 0, 0, 1);
+
 	glTranslatef(sx, sy, sz);
 	head2();
 	rightEye();
@@ -1608,7 +1693,7 @@ void rightLeg() {
 	//drawCylinder(1, 1, 1, 1, 1);
 	//glPopMatrix();
 	glTranslatef(2, -.8, 0);
-	glRotatef(legtheta, 1, 0, 1);
+	glRotatef(90, 1, 0, 1);
 	for (float i = 0; i < 0.5; i += 0.1) {
 
 		glPushMatrix();
@@ -1897,16 +1982,122 @@ void tail() {
 }
 
 void bubbles() {
-	for (int i = 0; i < 10; i++) {
+	currentMaterials = &blueMaterials2;
+	materials(currentMaterials);
+	glPushMatrix();
+	if (!(bubbleZ > 3) && attack == true) {
+		glTranslatef(0-0.1, 0, bubbleZ += bubbleSpeed);
 		glPushMatrix();
-		glTranslatef(-1+i*.2, 1.6, 1.1);
+		glTranslatef(-0.2, 1.6, 2.3+9);
 		glScalef(0.1, 0.1, 0.1);
 		drawSphereWithNormalSmooth(quadIndex);
 		quadIndex += 2628;
 		glPopMatrix();
 
-	}
-	quadIndex = 0;
+		glPushMatrix();
+		glTranslatef(0 - 0.1, 1.53, 2.8 + 9);
+		glScalef(0.1, 0.1, 0.1);
+		drawSphereWithNormalSmooth(quadIndex);
+		quadIndex += 2628;
+		glPopMatrix();
 
+		glPushMatrix();
+		glTranslatef(0.1 - 0.1, 1.65, 2.6 + 9);
+		glScalef(0.1, 0.1, 0.1);
+		drawSphereWithNormalSmooth(quadIndex);
+		quadIndex += 2628;
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(0.3 - 0.1, 1.55, 2.5 + 9);
+		glScalef(0.1, 0.1, 0.1);
+		drawSphereWithNormalSmooth(quadIndex);
+		quadIndex += 2628;
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(0.4 - 0.1, 1.61, 2.7 + 9);
+		glScalef(0.1, 0.1, 0.1);
+		drawSphereWithNormalSmooth(quadIndex);
+		quadIndex += 2628;
+		glPopMatrix();
+		//2nds
+		glPushMatrix();
+		glTranslatef(-0.2 - 0.1, 1.6, 1.3 + 9);
+		glScalef(0.1, 0.1, 0.1);
+		drawSphereWithNormalSmooth(quadIndex);
+		quadIndex += 2628;
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(0 - 0.1, 1.53, 1.8 + 9);
+		glScalef(0.1, 0.1, 0.1);
+		drawSphereWithNormalSmooth(quadIndex);
+		quadIndex += 2628;
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(0.1 - 0.1, 1.65, 1.6 + 9);
+		glScalef(0.1, 0.1, 0.1);
+		drawSphereWithNormalSmooth(quadIndex);
+		quadIndex += 2628;
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(0.3 - 0.1, 1.55, 1.5 + 9);
+		glScalef(0.1, 0.1, 0.1);
+		drawSphereWithNormalSmooth(quadIndex);
+		quadIndex += 2628;
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(0.4 - 0.1, 1.61, 1.7 + 9);
+		glScalef(0.1, 0.1, 0.1);
+		drawSphereWithNormalSmooth(quadIndex);
+		quadIndex += 2628;
+		glPopMatrix();
+		//3rd
+		glPushMatrix();
+		glTranslatef(0.3 - 0.1, 1.55, 1 + 9);
+		glScalef(0.1, 0.1, 0.1);
+		drawSphereWithNormalSmooth(quadIndex);
+		quadIndex += 2628;
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(0.4 - 0.1, 1.61, 1.1 + 9);
+		glScalef(0.1, 0.1, 0.1);
+		drawSphereWithNormalSmooth(quadIndex);
+		quadIndex += 2628;
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(-0.2 - 0.1, 1.6 , 0.7 + 9);
+		glScalef(0.1, 0.1, 0.1);
+		drawSphereWithNormalSmooth(quadIndex);
+		quadIndex += 2628;
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(0 - 0.1, 1.53 , 0.6 + 9);
+		glScalef(0.1, 0.1, 0.1);
+		drawSphereWithNormalSmooth(quadIndex);
+		quadIndex += 2628;
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(0.1 - 0.1, 1.65, 1.1 + 9);
+		glScalef(0.1, 0.1, 0.1);
+		drawSphereWithNormalSmooth(quadIndex);
+		quadIndex += 2628;
+		glPopMatrix();
+	}
+	else attack = false;
+
+	glPopMatrix();
+
+	quadIndex = 0;
+	currentMaterials = &blueMaterials;
+	materials(currentMaterials);
 	
 }
