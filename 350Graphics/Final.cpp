@@ -14,6 +14,20 @@ const float REGION_DIM = 100;
 GLfloat fov = 45.0, aspect = 1;
 GLfloat theta = 30, phi = 60, rho = 10;
 float theta2 = 30;
+float headTheta = 0;
+float leftLegTheta = 0;
+float rightLegTheta = 0;
+float leftArmTheta = 0;
+float rightArmTheta = 0;
+float sx = 0, sy = 0, sz = 0;
+
+bool attack = false;
+bool walkToSpot = false;
+bool rightArmUp = false;
+bool leftArmUp = false;
+bool rightLegUp = false;
+bool leftLegUp = false;
+bool headUp = false;
 GLfloat dTheta = 5, dPhi = 5, dRho = 0.5;
 GLfloat alpha = 0, beta = 0, gama = 0;
 GLfloat dAlpha = 5, dBeta = 5, dGama = 5;
@@ -31,9 +45,7 @@ float x = 0, y = 2, z = 0.0f;
 float sens = 0.01f;
 float xPos = 0, yPos = 0;
 
-float r1 = 0.5;
-float r2 = 0.7;
-float r3 = 0.9;
+
 
 float legtheta = 90;
 GLfloat global_ambient[] = { 1, 0.0, 0.0, 1.0 };  // independent of any of the sources
@@ -391,7 +403,8 @@ void display()
 	drawSquirtle();
 
 	glutSwapBuffers();
-	//glutPostRedisplay();
+	if(!walkToSpot)
+	glutPostRedisplay();
 
 	frameCount++;
 	finalTime = time(NULL);
@@ -547,6 +560,11 @@ void init(void)
 	createSphereWithNormalSmooth(1);
 	createSphereWithNormalSmooth(1);
 	createSphereWithNormalSmooth(1);
+	createSphereWithNormalSmooth(1);
+	createSphereWithNormalSmooth(1);
+	createSphereWithNormalSmooth(1);
+	createSphereWithNormalSmooth(1);
+
 
 	//bubbles
 	
@@ -598,6 +616,67 @@ void idle()
 	theta2 += 14.92 * increment;
 	if (theta2 > 360) theta2 -= 360;
 
+
+	//if (!headUp) {
+	//	headTheta += 14.92 * increment;
+	//}
+	//if (headTheta > 10 || headUp) {
+	//	headUp = true;
+	//	headTheta -= 14.92 * increment;
+	//	if (headTheta <= 0)headUp = false;
+	//}
+	if (walkToSpot) {
+		if (!leftLegUp) {
+			leftLegTheta += 14.92 * increment;
+			sz += 0.01;
+		}
+		if (leftLegTheta > 15 || leftLegUp) {
+			leftLegUp = true;
+			sz += 0.01;
+			leftLegTheta -= 14.92 * increment;
+			if (leftLegTheta <= -15) {
+				leftLegUp = false;
+				sz += .01;
+			}
+		}
+
+		if (!rightLegUp) {
+			rightLegTheta += 14.92 * increment;
+			sz += 0.01;
+		}
+		if (rightLegTheta > 15 || rightLegUp) {
+			rightLegUp = true;
+			sz += 0.01;
+			rightLegTheta -= 14.92 * increment;
+			if (rightLegTheta <= -15) {
+				rightLegUp = false;
+				sz += 0.01;
+			}
+		}
+
+		if (!leftArmUp) {
+			leftArmTheta += 14.92 * increment;
+		}
+		if (leftArmTheta > 15 || leftArmUp) {
+			leftArmUp = true;
+			leftArmTheta -= 14.92 * increment;
+			if (leftArmTheta <= -15)leftArmUp = false;
+		}
+
+		if (!rightArmUp) {
+			rightArmTheta += 10.92 * increment;
+		}
+		if (rightArmTheta > 15 || rightArmUp) {
+			rightArmUp = true;
+			rightArmTheta -= 10.92 * increment;
+			if (rightArmTheta <= -15)rightArmUp = false;
+		}
+		if (sz >= 2) {
+			sz = 2;
+			walkToSpot = false;
+		}
+	}
+	//sz = 0;
 	//legtheta -= 14.92 * increment;
 	//if (legtheta < 80) legtheta = 90;
 	glutPostRedisplay();
@@ -668,7 +747,7 @@ void keys(unsigned char k, int xx, int yy)
 		z += xangle * speed;
 	}
 	else if (k == 'w' || k == 'W') {
-		x +=xangle * speed;
+		x += xangle * speed;
 		z += zangle * speed;
 		//std::cout << x << ' ' << z << '\n';
 
@@ -679,13 +758,15 @@ void keys(unsigned char k, int xx, int yy)
 		//std::cout << x << ' ' << z << '\n';
 
 	}
-		//a += dA * direction;
+	//a += dA * direction;
 	else if (k == 'b' || k == 'B')
 		b += dB * direction;
 	else if (k == 'c' || k == 'C')
 		c += dC * direction;
-	else if (k == 'i' || k == 'I')
-		glutIdleFunc(idle);
+	else if (k == 'i' || k == 'I') {
+	glutIdleFunc(idle);
+	walkToSpot = true;
+	}
 	else if (k == 'q' || k == 'Q')
 		glutIdleFunc(NULL);
 	else if (k == '+')
@@ -752,7 +833,7 @@ int main(int argc, char** argv)
 	//glutPassiveMotionFunc(mouseMove);
 	glutKeyboardFunc(keys);
 	glutSpecialFunc(specialKeys);
-	glutIdleFunc(idle);
+	//glutIdleFunc(idle);
 	init();
 	glutMainLoop();
 
@@ -760,6 +841,8 @@ int main(int argc, char** argv)
 }
 
 void drawSquirtle() {
+	glPushMatrix();
+	glTranslatef(sx, sy, sz);
 	head2();
 	rightEye();
 	leftEye();
@@ -772,13 +855,17 @@ void drawSquirtle() {
 	leftFoot();
 	rightFoot();
 	tail();
-	bubbles();
+	glPopMatrix();
+	if (attack) {
+		bubbles();
+	}
 
 }
 
 void head2() {
 
 	glPushMatrix();
+	glRotatef(headTheta, 1, 0, 0);
 	//top half sphere
 	glPushMatrix();
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
@@ -802,9 +889,9 @@ void head2() {
 	glScalef(1.4, 1.3, .5);
 	drawHalfSphereWithNormalSmooth(quadIndexHalf);
 	quadIndexHalf += 1314;
-
 	glPopAttrib();
 	glPopMatrix();
+
 	//small thing
 	glPushMatrix();
 	glTranslatef(0.2, 2.05, 1.335);
@@ -822,7 +909,6 @@ void head2() {
 	glScalef(0.3, 0.4, 0.2);
 	drawSphereWithNormalSmooth(quadIndex);
 	quadIndex += 2628;
-	glPopMatrix();
 	glPopMatrix();
 
 
@@ -918,11 +1004,14 @@ void head2() {
 	quadIndex += 2628;
 	glPopAttrib();
 	glPopMatrix();
+	glPopMatrix();
+
 
 }
 void rightEye() {
 	//right eye shape
 	glPushMatrix();
+	glRotatef(headTheta, 1, 0, 0);
 	glPushMatrix();
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	currentMaterials = &brassMaterials3;
@@ -987,6 +1076,7 @@ void rightEye() {
 void leftEye() {
 	//left eye shape
 	glPushMatrix();
+	glRotatef(headTheta, 1, 0, 0);
 	glPushMatrix();
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	currentMaterials = &brassMaterials3;
@@ -1048,501 +1138,6 @@ void leftEye() {
 	glPopAttrib();
 	glPopMatrix();
 	glPopMatrix();
-}
-void body() {
-	//bod
-	glPushMatrix();
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-	//	glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emission);  // add a fixed color
-	currentMaterials = &brassMaterials;
-	materials(currentMaterials);
-	glTranslatef(0, -0.3, -0.2);
-	//glRotatef(90, 0, 0, 1);
-	//glRotatef(90, 1, 0, 0);
-	glScalef(1.4, 1.4, 1);
-	drawSphereWithNormalSmooth(quadIndex);
-	quadIndex += 2628;
-	glPopAttrib();
-	glPopMatrix();
-
-	currentMaterials = &brassMaterials2;
-	materials(currentMaterials);
-	glPushMatrix();
-	glTranslatef(0, -0.3, -0.19);
-	glRotatef(90, 1, 0, 0);
-	glRotatef(90, 1, 0, 0);
-	glScalef(1.4, 0.1, 1);
-	drawHalfSphereWithNormalSmooth(quadIndexHalf);
-	quadIndexHalf += 1314;
-	glPopMatrix();
-
-	currentMaterials = &brassMaterials2;
-	materials(currentMaterials);
-	glPushMatrix();
-	glTranslatef(0, -1.1, -0.3);
-	glRotatef(90, 1, 0, 0);
-	glRotatef(90, 1, 0, 0);
-	glScalef(1.3, 0.1, 1);
-	drawHalfSphereWithNormalSmooth(quadIndexHalf);
-	quadIndexHalf += 1314;
-	glPopMatrix();
-
-	currentMaterials = &brassMaterials2;
-	materials(currentMaterials);
-	glPushMatrix();
-	glTranslatef(0, 0.6, -0.35);
-	glRotatef(90, 1, 0, 0);
-	glRotatef(90, 1, 0, 0);
-	glScalef(1.3, 0.1, 1);
-	drawHalfSphereWithNormalSmooth(quadIndexHalf);
-	quadIndexHalf += 1314;
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(0, -0.3, -0.19);
-	glRotatef(90, 0, 0, 1);
-	glRotatef(90, 1, 0, 0);
-	glRotatef(90, 1, 0, 0);
-	glScalef(1.4, 0.1, 1);
-	drawHalfSphereWithNormalSmooth(quadIndexHalf);
-	quadIndexHalf += 1314;
-	glPopMatrix();
-
-	//glPushMatrix();
-	//glTranslatef(0, -0.3, -0.19);
-	//glRotatef(45, 0, 0, 1);
-	//glRotatef(90, 0, 0, 1);
-	//glRotatef(90, 1, 0, 0);
-	//glRotatef(90, 1, 0, 0);
-	//glScalef(1.4, 0.1, 1);
-	//drawHalfSphereWithNormalSmooth(quadIndexHalf);
-	//quadIndexHalf += 1314;
-	//glPopMatrix();
-
-	//glPushMatrix();
-	//glTranslatef(0, -0.3, -0.19);
-	//glRotatef(-45, 0, 0, 1);
-	//glRotatef(90, 0, 0, 1);
-	//glRotatef(90, 1, 0, 0);
-	//glRotatef(90, 1, 0, 0);
-	//glScalef(1.4, 0.1, 1);
-	//drawHalfSphereWithNormalSmooth(quadIndexHalf);
-	//quadIndexHalf += 1314;
-	//glPopMatrix();
-
-	//glPushMatrix();
-	//glTranslatef(0, -0.3, -0.19);
-	//glRotatef(45, 0, 0, 1);
-	//glRotatef(90, 0, 0, 1);
-	//glRotatef(90, 1, 0, 0);
-	//glRotatef(90, 1, 0, 0);
-	//glScalef(1.4, 0.1, 1);
-	//drawHalfSphereWithNormalSmooth(quadIndexHalf);
-	//quadIndexHalf += 1314;
-	//glPopMatrix();
-
-	quadIndexHalf = 0;
-	currentMaterials = &blueMaterials;
-	materials(currentMaterials);
-
-}
-void leftArm() {
-	//hand left
-	//glPushMatrix();
-	//glTranslatef(-2, 0, 2);
-	//glScalef(0.4, 1, 0.4);
-	//drawCylinder(1, 1, 1, 1, 1);
-	//glPopMatrix();
-	for (float i = 0; i < 0.5; i += 0.05) {
-
-		glPushMatrix();
-		glTranslatef(-1.5 - i, 0.5, 0 + i);
-		glScalef(1, 1, 1);
-		drawSphereWithNormalSmooth(quadIndex);
-		quadIndex += 2628;
-		glPopMatrix();
-	}
-	glPushMatrix();
-	glRotatef(25, 0, 1, 0);
-	for (float i = 0.5; i < 1; i += 0.1) {
-		glPushMatrix();
-		glTranslatef(-1.6 - i, 0.5, -1+ i * 1.3);
-		glScalef(1, 1, 1);
-		drawSphereWithNormalSmooth(quadIndex);
-		quadIndex += 2628;
-		glPopMatrix();
-	}
-	glPopMatrix();
-
-	glPushMatrix();
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-	//glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emission);  // add a fixed color
-	glTranslatef(-2.4, 0.4, 1.4);
-	//glRotatef(-10, 0, 0, -1);
-	glRotatef(90, 1, 0, 0);
-	glScalef(0.2, 0.3, 0.2);
-	drawSphereWithNormalSmooth(quadIndex);
-	quadIndex += 2628;
-	glPopAttrib();
-	glPopMatrix();
-
-	glPushMatrix();
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-	//glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emission);  // add a fixed color
-	glTranslatef(-2.2, 0.5, 1.48);
-	glRotatef(90, 1, 0, 0);
-	glScalef(0.2, 0.3, 0.2);
-	drawSphereWithNormalSmooth(quadIndex);
-	quadIndex += 2628;
-	glPopAttrib();
-	glPopMatrix();
-
-	glPushMatrix();
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-	//glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emission);  // add a fixed color
-	glTranslatef(-2, 0.4, 1.4);
-	//glRotatef(-10, 0, 0, -1);
-	glRotatef(90, 1, 0, 0);
-	glScalef(0.2, 0.3, 0.2);
-	drawSphereWithNormalSmooth(quadIndex);
-	quadIndex += 2628;
-	glPopAttrib();
-	glPopMatrix();
-
-
-}
-void rightArm() {
-	//hand right
-	//glPushMatrix();
-	//glTranslatef(-2, 0, 2);
-	//glScalef(0.4, 1, 0.4);
-	//drawCylinder(1, 1, 1, 1, 1);
-	//glPopMatrix();
-	for (float i = 0; i < 0.5; i += 0.05) {
-
-		glPushMatrix();
-		glTranslatef(1.5 +i, 0.5, 0 + i);
-		glScalef(1, 1, 1);
-		drawSphereWithNormalSmooth(quadIndex);
-		quadIndex += 2628;
-		glPopMatrix();
-	}
-	glPushMatrix();
-	glRotatef(-25, 0, 1, 0);
-	for (float i = 0.5; i < 1; i += 0.1) {
-		glPushMatrix();
-		glTranslatef(1.6 +i, 0.5, -1 + i * 1.3);
-		glScalef(1, 1, 1);
-		drawSphereWithNormalSmooth(quadIndex);
-		quadIndex += 2628;
-		glPopMatrix();
-	}
-	glPopMatrix();
-
-	glPushMatrix();
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-	//glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emission);  // add a fixed color
-	glTranslatef(2.4, 0.4, 1.4);
-	//glRotatef(-10, 0, 0, -1);
-	glRotatef(90, 1, 0, 0);
-	glScalef(0.2, 0.3, 0.2);
-	drawSphereWithNormalSmooth(quadIndex);
-	quadIndex += 2628;
-	glPopAttrib();
-	glPopMatrix();
-
-	glPushMatrix();
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-	//glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emission);  // add a fixed color
-	glTranslatef(2.2, 0.5, 1.48);
-	glRotatef(90, 1, 0, 0);
-	glScalef(0.2, 0.3, 0.2);
-	drawSphereWithNormalSmooth(quadIndex);
-	quadIndex += 2628;
-	glPopAttrib();
-	glPopMatrix();
-
-	glPushMatrix();
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-	//glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emission);  // add a fixed color
-	glTranslatef(2, 0.4, 1.4);
-	//glRotatef(-10, 0, 0, -1);
-	glRotatef(90, 1, 0, 0);
-	glScalef(0.2, 0.3, 0.2);
-	drawSphereWithNormalSmooth(quadIndex);
-	quadIndex += 2628;
-	glPopAttrib();
-	glPopMatrix();
-
-}
-void leftLeg() {
-	//leg left
-	glPushMatrix();
-	//glTranslatef(-2, 0, 2);
-	//glScalef(0.4, 1, 0.4);
-	//drawCylinder(1, 1, 1, 1, 1);
-	//glPopMatrix();
-	glTranslatef(0, -.8, 0);
-	glRotatef(90, 1, 0, 1);
-	for (float i = 0; i < 0.5; i += 0.1) {
-
-		glPushMatrix();
-		glTranslatef(-1.5 - i, 0.5, 0 + i);
-		glScalef(1, 1, 1);
-		drawSphereWithNormalSmooth(quadIndex);
-		quadIndex += 2628;
-
-		glPopMatrix();
-	}
-	glPushMatrix();
-	glTranslatef(0.3, 0, 0.3);
-	glRotatef(15, -1, 1, 0);
-	for (float i = 0.5; i < 1; i += 0.1) {
-		glPushMatrix();
-		glTranslatef(-1.6 - i, 0.5, -1 + i * 1.3);
-		glScalef(1, 1, 1);
-		drawSphereWithNormalSmooth(quadIndex);
-		quadIndex += 2628;
-
-		glPopMatrix();
-	}
-	glPopMatrix();
-	glPopMatrix();
-}
-void rightLeg() {
-	//leg left
-	glPushMatrix();
-	//glTranslatef(-2, 0, 2);
-	//glScalef(0.4, 1, 0.4);
-	//drawCylinder(1, 1, 1, 1, 1);
-	//glPopMatrix();
-	glTranslatef(2, -.8, 0);
-	glRotatef(legtheta, 1, 0, 1);
-	for (float i = 0; i < 0.5; i += 0.1) {
-
-		glPushMatrix();
-		glTranslatef(-1.5 - i, 0.5, 0 + i);
-		glScalef(1, 1, 1);
-		drawSphereWithNormalSmooth(quadIndex);
-		quadIndex += 2628;
-		glPopMatrix();
-	}
-	glPushMatrix();
-	glTranslatef(0.3, 0, 0.3);
-	glRotatef(15, -1, 1, 0);
-	for (float i =0.5; i < 1; i += 0.1) {
-		glPushMatrix();
-		glTranslatef(-1.6 - i, 0.5, -1 + i * 1.3);
-		glScalef(1, 1, 1);
-		drawSphereWithNormalSmooth(quadIndex);
-		quadIndex += 2628;
-
-		glPopMatrix();
-	}
-	glPopMatrix();
-	glPopMatrix();
-
-}
-void leftFoot() {
-
-	glPushMatrix();
-	glTranslatef(-1, -3.2, -0.1);
-	glRotatef(90, 1, 0, 0);
-	glScalef(0.4, 0.5, 0.1);
-	drawCylinder(1, 1, 0.95, 0.95, 1);
-	drawSphereWithNormalSmooth(quadIndex);
-	quadIndex += 2628;
-	glPopMatrix();
-
-	glPushMatrix();
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-	//glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emission);  // add a fixed color
-	glTranslatef(0.8, -3.2, 0.3);
-	//glRotatef(-10, 0, 0, -1);
-	glRotatef(90, 1,0 , 0);
-	glScalef(0.2, 0.3, 0.12);
-	drawSphereWithNormalSmooth(quadIndex);
-	quadIndex += 2628;
-	glPopAttrib();
-	glPopMatrix();
-
-	glPushMatrix();
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-	//glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emission);  // add a fixed color
-	glTranslatef(1, -3.2, 0.35);
-	//glRotatef(-10, 0, 0, -1);
-	glRotatef(90, 1, 0, 0);
-	glScalef(0.2, 0.3, 0.12);
-	drawSphereWithNormalSmooth(quadIndex);
-	quadIndex += 2628;
-	glPopAttrib();
-	glPopMatrix();
-
-	glPushMatrix();
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-	//glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emission);  // add a fixed color
-	glTranslatef(1.2, -3.2, 0.3);
-	//glRotatef(-10, 0, 0, -1);
-	glRotatef(90, 1, 0, 0);
-	glScalef(0.2, 0.3, 0.12);
-	drawSphereWithNormalSmooth(quadIndex);
-	quadIndex += 2628;
-	glPopAttrib();
-	glPopMatrix();
-	//quadIndex += 2628;
-}
-void rightFoot() {
-
-	glPushMatrix();
-	glTranslatef(1, -3.2, -0.1);
-	glRotatef(90, 1, 0, 0);
-	glScalef(0.4, 0.5, 0.1);
-	drawCylinder(1, 1, 0.95, 0.95, 1);
-	drawSphereWithNormalSmooth(quadIndex);
-	quadIndex += 2628;
-	glPopMatrix();
-
-	glPushMatrix();
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-	//glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emission);  // add a fixed color
-	glTranslatef(-0.8, -3.2, 0.3);
-	//glRotatef(-10, 0, 0, -1);
-	glRotatef(90, 1, 0, 0);
-	glScalef(0.2, 0.3, 0.12);
-	drawSphereWithNormalSmooth(quadIndex);
-	quadIndex += 2628;
-	glPopAttrib();
-	glPopMatrix();
-
-	glPushMatrix();
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-	//glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emission);  // add a fixed color
-	glTranslatef(-1, -3.2, 0.35);
-	//glRotatef(-10, 0, 0, -1);
-	glRotatef(90, 1, 0, 0);
-	glScalef(0.2, 0.3, 0.12);
-	drawSphereWithNormalSmooth(quadIndex);
-	quadIndex += 2628;
-	glPopAttrib();
-	glPopMatrix();
-
-	glPushMatrix();
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-	//glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emission);  // add a fixed color
-	glTranslatef(-1.2, -3.2, 0.3);
-	//glRotatef(-10, 0, 0, -1);
-	glRotatef(90, 1, 0, 0);
-	glScalef(0.2, 0.3, 0.12);
-	drawSphereWithNormalSmooth(quadIndex);
-	quadIndex += 2628;
-	glPopAttrib();
-	glPopMatrix();
-}
-void tail() {
-	glPushMatrix();
-	glRotatef(25, 1, 0, 0);
-	glPushMatrix();
-	glTranslatef(-0.1, -2.3, 0.4);
-	glScalef(0.5, 0.6, 0.5);
-	drawSphereWithNormalSmooth(quadIndex);
-	quadIndex += 2628;
-	glPopMatrix();
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-0.1, -2.6, -1);
-	glRotatef(80, 1, 0, 0);
-	glScalef(0.5, 0.6, 0.5);
-	drawSphereWithNormalSmooth(quadIndex);
-	quadIndex += 2628;
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-0.1, -2.7, -1.2);
-	glRotatef(80, 1, 0, 0);
-	glScalef(0.5, 0.6, 0.5);
-	drawSphereWithNormalSmooth(quadIndex);
-	quadIndex += 2628;
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-0.1, -2.7, -1.6);
-	glRotatef(80, 1, 0, 0);
-	glScalef(0.5, 0.6, 0.5);
-	drawSphereWithNormalSmooth(quadIndex);
-	quadIndex += 2628;
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-0.1, -2.6, -2);
-	glRotatef(80, 1, 0, 0);
-	glScalef(0.7, 0.6, 0.5);
-	drawSphereWithNormalSmooth(quadIndex);
-	quadIndex += 2628;
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-0.1, -2.2, -2.3);
-	glRotatef(80, 1, 0, 0);
-	glScalef(0.7, 0.6, 0.5);
-	drawSphereWithNormalSmooth(quadIndex);
-	quadIndex += 2628;
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-0.1, -1.8, -2.6);
-	glRotatef(80, 1, 0, 0);
-	glScalef(0.7, 0.6, 0.5);
-	drawSphereWithNormalSmooth(quadIndex);
-	quadIndex += 2628;
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-0.1, -2.6, -2.4);
-	glRotatef(80, 1, 0, 0);
-	glScalef(0.7, 0.6, 0.5);
-	drawSphereWithNormalSmooth(quadIndex);
-	quadIndex += 2628;
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-0.1, -2.4, -2.5);
-	glRotatef(80, 1, 0, 0);
-	glScalef(0.7, 0.6, 0.5);
-	drawSphereWithNormalSmooth(quadIndex);
-	quadIndex += 2628;
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-0.1, -2.2, -2.6);
-	glRotatef(80, 1, 0, 0);
-	glScalef(0.7, 0.6, 0.5);
-	drawSphereWithNormalSmooth(quadIndex);
-	quadIndex += 2628;
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-0.1, -2, -2.8);
-	glRotatef(80, 1, 0, 0);
-	glScalef(0.7, 0.6, 0.5);
-	drawSphereWithNormalSmooth(quadIndex);
-	quadIndex += 2628;
-	glPopMatrix();
-
-}
-
-void bubbles() {
-	glPushMatrix();
-	glTranslatef(5, 0, 5);
-	for (int i = 0; i < 10; i++) {
-
-		drawSphereWithNormalSmooth(quadIndex);
-		quadIndex += 2628;
-	}
-	glPopMatrix();
-	quadIndex = 0;
-
-	
 }
 void shell() {
 	float angle = 2 * 3.14159 / 100;//3.6 d
@@ -1613,7 +1208,7 @@ void shell() {
 		glVertex3fv(p3);
 		glVertex3fv(p4);
 	}
-		glEnd();
+	glEnd();
 
 	//-----------------------------------------------------------
 	//-----------------------------------------------------------
@@ -1736,4 +1331,582 @@ void shell() {
 	glPopMatrix();
 	currentMaterials = &blueMaterials;
 	materials(currentMaterials);
+}
+void body() {
+	//bod
+	glPushMatrix();
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	//	glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emission);  // add a fixed color
+	currentMaterials = &brassMaterials;
+	materials(currentMaterials);
+	glTranslatef(0, -0.3, -0.2);
+	//glRotatef(90, 0, 0, 1);
+	//glRotatef(90, 1, 0, 0);
+	glScalef(1.4, 1.4, 1);
+	drawSphereWithNormalSmooth(quadIndex);
+	quadIndex += 2628;
+	glPopAttrib();
+	glPopMatrix();
+
+	currentMaterials = &brassMaterials2;
+	materials(currentMaterials);
+	glPushMatrix();
+	glTranslatef(0, -0.3, -0.19);
+	glRotatef(90, 1, 0, 0);
+	glRotatef(90, 1, 0, 0);
+	glScalef(1.4, 0.1, 1);
+	drawHalfSphereWithNormalSmooth(quadIndexHalf);
+	quadIndexHalf += 1314;
+	glPopMatrix();
+
+	currentMaterials = &brassMaterials2;
+	materials(currentMaterials);
+	glPushMatrix();
+	glTranslatef(0, -1.1, -0.3);
+	glRotatef(90, 1, 0, 0);
+	glRotatef(90, 1, 0, 0);
+	glScalef(1.3, 0.1, 1);
+	drawHalfSphereWithNormalSmooth(quadIndexHalf);
+	quadIndexHalf += 1314;
+	glPopMatrix();
+
+	currentMaterials = &brassMaterials2;
+	materials(currentMaterials);
+	glPushMatrix();
+	glTranslatef(0, 0.6, -0.35);
+	glRotatef(90, 1, 0, 0);
+	glRotatef(90, 1, 0, 0);
+	glScalef(1.3, 0.1, 1);
+	drawHalfSphereWithNormalSmooth(quadIndexHalf);
+	quadIndexHalf += 1314;
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(0, -0.3, -0.19);
+	glRotatef(90, 0, 0, 1);
+	glRotatef(90, 1, 0, 0);
+	glRotatef(90, 1, 0, 0);
+	glScalef(1.4, 0.1, 1);
+	drawHalfSphereWithNormalSmooth(quadIndexHalf);
+	quadIndexHalf += 1314;
+	glPopMatrix();
+
+	//glPushMatrix();
+	//glTranslatef(0, -0.3, -0.19);
+	//glRotatef(45, 0, 0, 1);
+	//glRotatef(90, 0, 0, 1);
+	//glRotatef(90, 1, 0, 0);
+	//glRotatef(90, 1, 0, 0);
+	//glScalef(1.4, 0.1, 1);
+	//drawHalfSphereWithNormalSmooth(quadIndexHalf);
+	//quadIndexHalf += 1314;
+	//glPopMatrix();
+
+	//glPushMatrix();
+	//glTranslatef(0, -0.3, -0.19);
+	//glRotatef(-45, 0, 0, 1);
+	//glRotatef(90, 0, 0, 1);
+	//glRotatef(90, 1, 0, 0);
+	//glRotatef(90, 1, 0, 0);
+	//glScalef(1.4, 0.1, 1);
+	//drawHalfSphereWithNormalSmooth(quadIndexHalf);
+	//quadIndexHalf += 1314;
+	//glPopMatrix();
+
+	//glPushMatrix();
+	//glTranslatef(0, -0.3, -0.19);
+	//glRotatef(45, 0, 0, 1);
+	//glRotatef(90, 0, 0, 1);
+	//glRotatef(90, 1, 0, 0);
+	//glRotatef(90, 1, 0, 0);
+	//glScalef(1.4, 0.1, 1);
+	//drawHalfSphereWithNormalSmooth(quadIndexHalf);
+	//quadIndexHalf += 1314;
+	//glPopMatrix();
+
+	//quadIndexHalf = 0;
+	currentMaterials = &blueMaterials;
+	materials(currentMaterials);
+
+}
+void leftArm() {
+	//hand left
+	glPushMatrix();
+	glRotatef(leftArmTheta, 1, 0, 0);
+	//glTranslatef(-2, 0, 2);
+	//glScalef(0.4, 1, 0.4);
+	//drawCylinder(1, 1, 1, 1, 1);
+	//glPopMatrix();
+	for (float i = 0; i < 0.5; i += 0.05) {
+
+		glPushMatrix();
+		glTranslatef(-1.5 - i, 0.5, 0 + i);
+		glScalef(1, 1, 1);
+		drawSphereWithNormalSmooth(quadIndex);
+		quadIndex += 2628;
+		glPopMatrix();
+	}
+	glPushMatrix();
+	glRotatef(25, 0, 1, 0);
+	for (float i = 0.5; i < 1; i += 0.1) {
+		glPushMatrix();
+		glTranslatef(-1.6 - i, 0.5, -1+ i * 1.3);
+		glScalef(1, 1, 1);
+		drawSphereWithNormalSmooth(quadIndex);
+		quadIndex += 2628;
+		glPopMatrix();
+	}
+	glPopMatrix();
+
+	glPushMatrix();
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	//glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emission);  // add a fixed color
+	glTranslatef(-2.4, 0.4, 1.4);
+	//glRotatef(-10, 0, 0, -1);
+	glRotatef(90, 1, 0, 0);
+	glScalef(0.2, 0.3, 0.2);
+	drawSphereWithNormalSmooth(quadIndex);
+	quadIndex += 2628;
+	glPopAttrib();
+	glPopMatrix();
+
+	glPushMatrix();
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	//glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emission);  // add a fixed color
+	glTranslatef(-2.2, 0.5, 1.48);
+	glRotatef(90, 1, 0, 0);
+	glScalef(0.2, 0.3, 0.2);
+	drawSphereWithNormalSmooth(quadIndex);
+	quadIndex += 2628;
+	glPopAttrib();
+	glPopMatrix();
+
+	glPushMatrix();
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	//glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emission);  // add a fixed color
+	glTranslatef(-2, 0.4, 1.4);
+	//glRotatef(-10, 0, 0, -1);
+	glRotatef(90, 1, 0, 0);
+	glScalef(0.2, 0.3, 0.2);
+	drawSphereWithNormalSmooth(quadIndex);
+	quadIndex += 2628;
+	glPopAttrib();
+	glPopMatrix();
+
+	glPopMatrix();
+
+
+}
+void rightArm() {
+	//hand right
+	glPushMatrix();
+	glRotatef(rightArmTheta, 1, 0, 0);
+	//glTranslatef(-2, 0, 2);
+	//glScalef(0.4, 1, 0.4);
+	//drawCylinder(1, 1, 1, 1, 1);
+	//glPopMatrix();
+	for (float i = 0; i < 0.5; i += 0.05) {
+
+		glPushMatrix();
+		glTranslatef(1.5 +i, 0.5, 0 + i);
+		glScalef(1, 1, 1);
+		drawSphereWithNormalSmooth(quadIndex);
+		quadIndex += 2628;
+		glPopMatrix();
+	}
+	glPushMatrix();
+	glRotatef(-25, 0, 1, 0);
+	for (float i = 0.5; i < 1; i += 0.1) {
+		glPushMatrix();
+		glTranslatef(1.6 +i, 0.5, -1 + i * 1.3);
+		glScalef(1, 1, 1);
+		drawSphereWithNormalSmooth(quadIndex);
+		quadIndex += 2628;
+		glPopMatrix();
+	}
+	glPopMatrix();
+
+	glPushMatrix();
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	//glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emission);  // add a fixed color
+	glTranslatef(2.4, 0.4, 1.4);
+	//glRotatef(-10, 0, 0, -1);
+	glRotatef(90, 1, 0, 0);
+	glScalef(0.2, 0.3, 0.2);
+	drawSphereWithNormalSmooth(quadIndex);
+	quadIndex += 2628;
+	glPopAttrib();
+	glPopMatrix();
+
+	glPushMatrix();
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	//glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emission);  // add a fixed color
+	glTranslatef(2.2, 0.5, 1.48);
+	glRotatef(90, 1, 0, 0);
+	glScalef(0.2, 0.3, 0.2);
+	drawSphereWithNormalSmooth(quadIndex);
+	quadIndex += 2628;
+	glPopAttrib();
+	glPopMatrix();
+
+	glPushMatrix();
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	//glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emission);  // add a fixed color
+	glTranslatef(2, 0.4, 1.4);
+	//glRotatef(-10, 0, 0, -1);
+	glRotatef(90, 1, 0, 0);
+	glScalef(0.2, 0.3, 0.2);
+	drawSphereWithNormalSmooth(quadIndex);
+	quadIndex += 2628;
+	glPopAttrib();
+	glPopMatrix();
+
+	glPopMatrix();
+
+}
+void leftLeg() {
+	//leg left
+	glPushMatrix();
+	glRotatef(leftLegTheta, 1, 0, 0);
+	//glTranslatef(-2, 0, 2);
+	//glScalef(0.4, 1, 0.4);
+	//drawCylinder(1, 1, 1, 1, 1);
+	//glPopMatrix();
+	glTranslatef(0, -.8, 0);
+	glRotatef(90, 1, 0, 1);
+	for (float i = 0; i < 0.5; i += 0.1) {
+
+		glPushMatrix();
+		glTranslatef(-1.5 - i, 0.5, 0 + i);
+		glScalef(1, 1, 1);
+		drawSphereWithNormalSmooth(quadIndex);
+		quadIndex += 2628;
+
+		glPopMatrix();
+	}
+	glPushMatrix();
+	glTranslatef(0.3, 0, 0.3);
+	glRotatef(15, -1, 1, 0);
+	for (float i = 0.5; i < 1; i += 0.1) {
+		glPushMatrix();
+		glTranslatef(-1.6 - i, 0.5, -1 + i * 1.3);
+		glScalef(1, 1, 1);
+		drawSphereWithNormalSmooth(quadIndex);
+		quadIndex += 2628;
+
+		glPopMatrix();
+	}
+	glPopMatrix();
+	glPopMatrix();
+}
+void rightLeg() {
+	//leg left
+	glPushMatrix();
+	glRotatef(-rightLegTheta, 1, 0, 0);
+	//glTranslatef(-2, 0, 2);
+	//glScalef(0.4, 1, 0.4);
+	//drawCylinder(1, 1, 1, 1, 1);
+	//glPopMatrix();
+	glTranslatef(2, -.8, 0);
+	glRotatef(legtheta, 1, 0, 1);
+	for (float i = 0; i < 0.5; i += 0.1) {
+
+		glPushMatrix();
+		glTranslatef(-1.5 - i, 0.5, 0 + i);
+		glScalef(1, 1, 1);
+		drawSphereWithNormalSmooth(quadIndex);
+		quadIndex += 2628;
+		glPopMatrix();
+	}
+	glPushMatrix();
+	glTranslatef(0.3, 0, 0.3);
+	glRotatef(15, -1, 1, 0);
+	for (float i =0.5; i < 1; i += 0.1) {
+		glPushMatrix();
+		glTranslatef(-1.6 - i, 0.5, -1 + i * 1.3);
+		glScalef(1, 1, 1);
+		drawSphereWithNormalSmooth(quadIndex);
+		quadIndex += 2628;
+
+		glPopMatrix();
+	}
+	glPopMatrix();
+	glPopMatrix();
+
+}
+void leftFoot() {
+	glPushMatrix();
+	glRotatef(leftLegTheta, 1, 0, 0);
+	glPushMatrix();
+	glTranslatef(-1, -3.2, -0.1);
+	glRotatef(90, 1, 0, 0);
+	glScalef(0.4, 0.5, 0.1);
+	drawCylinder(1, 1, 0.95, 0.95, 1);
+	drawSphereWithNormalSmooth(quadIndex);
+	quadIndex += 2628;
+	glPopMatrix();
+
+
+	glPushMatrix();
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	//glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emission);  // add a fixed color
+	glTranslatef(-1.2, -3.2, 0.3);
+	//glRotatef(-10, 0, 0, -1);
+	glRotatef(90, 1, 0, 0);
+	glScalef(0.2, 0.3, 0.12);
+	drawSphereWithNormalSmooth(quadIndex);
+	quadIndex += 2628;
+	glPopAttrib();
+	glPopMatrix();
+
+	glPushMatrix();
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	//glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emission);  // add a fixed color
+	glTranslatef(-0.8, -3.2, 0.3);
+	//glRotatef(-10, 0, 0, -1);
+	glRotatef(90, 1, 0, 0);
+	glScalef(0.2, 0.3, 0.12);
+	drawSphereWithNormalSmooth(quadIndex);
+	quadIndex += 2628;
+	glPopAttrib();
+	glPopMatrix();
+
+	glPushMatrix();
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	//glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emission);  // add a fixed color
+	glTranslatef(-1, -3.2, 0.35);
+	//glRotatef(-10, 0, 0, -1);
+	glRotatef(90, 1, 0, 0);
+	glScalef(0.2, 0.3, 0.12);
+	drawSphereWithNormalSmooth(quadIndex);
+	quadIndex += 2628;
+	glPopAttrib();
+	glPopMatrix();
+	glPopMatrix();
+
+}
+void rightFoot() {
+	glPushMatrix();
+	glRotatef(-rightLegTheta, 1, 0, 0);
+	glPushMatrix();
+	glTranslatef(1, -3.2, -0.1);
+	glRotatef(90, 1, 0, 0);
+	glScalef(0.4, 0.5, 0.1);
+	drawCylinder(1, 1, 0.95, 0.95, 1);
+	drawSphereWithNormalSmooth(quadIndex);
+	quadIndex += 2628;
+	glPopMatrix();
+
+	
+
+	glPushMatrix();
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	//glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emission);  // add a fixed color
+	glTranslatef(0.8, -3.2, 0.3);
+	//glRotatef(-10, 0, 0, -1);
+	glRotatef(90, 1, 0, 0);
+	glScalef(0.2, 0.3, 0.12);
+	drawSphereWithNormalSmooth(quadIndex);
+	quadIndex += 2628;
+	glPopAttrib();
+	glPopMatrix();
+
+	glPushMatrix();
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	//glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emission);  // add a fixed color
+	glTranslatef(1, -3.2, 0.35);
+	//glRotatef(-10, 0, 0, -1);
+	glRotatef(90, 1, 0, 0);
+	glScalef(0.2, 0.3, 0.12);
+	drawSphereWithNormalSmooth(quadIndex);
+	quadIndex += 2628;
+	glPopAttrib();
+	glPopMatrix();
+
+	glPushMatrix();
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	//glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emission);  // add a fixed color
+	glTranslatef(1.2, -3.2, 0.3);
+	//glRotatef(-10, 0, 0, -1);
+	glRotatef(90, 1, 0, 0);
+	glScalef(0.2, 0.3, 0.12);
+	drawSphereWithNormalSmooth(quadIndex);
+	quadIndex += 2628;
+	glPopAttrib();
+	glPopMatrix();
+	//quadIndex += 2628;
+	glPopMatrix();
+}
+void tail() {
+	glPushMatrix();
+	glRotatef(25, 1, 0, 0);
+	glPushMatrix();
+	glTranslatef(-0.1, -2.3, 0.4);
+	glScalef(0.6, 0.6, 0.5);
+	drawSphereWithNormalSmooth(quadIndex);
+	quadIndex += 2628;
+	glPopMatrix();
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(-0.1, -2.6, -1);
+	glRotatef(80, 1, 0, 0);
+	glScalef(0.6, 0.6, 0.5);
+	drawSphereWithNormalSmooth(quadIndex);
+	quadIndex += 2628;
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(-0.1, -2.7, -1.2);
+	glRotatef(80, 1, 0, 0);
+	glScalef(0.6, 0.6, 0.5);
+	drawSphereWithNormalSmooth(quadIndex);
+	quadIndex += 2628;
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(-0.1, -2.7, -1.6);
+	glRotatef(80, 1, 0, 0);
+	glScalef(0.7, 0.6, 0.5);
+	drawSphereWithNormalSmooth(quadIndex);
+	quadIndex += 2628;
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(-0.1, -2.6, -2);
+	glRotatef(80, 1, 0, 0);
+	glScalef(0.7, 0.6, 0.5);
+	drawSphereWithNormalSmooth(quadIndex);
+	quadIndex += 2628;
+	glPopMatrix();
+	
+	glPushMatrix();
+	glTranslatef(-0.1, -2.2, -2.3);
+	glRotatef(80, 1, 0, 0);
+	glScalef(0.7, 0.6, 0.5);
+	drawSphereWithNormalSmooth(quadIndex);
+	quadIndex += 2628;
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(-0.1, -1.8, -2.6);
+	glRotatef(80, 1, 0, 0);
+	glScalef(0.7, 0.6, 0.5);
+	drawSphereWithNormalSmooth(quadIndex);
+	quadIndex += 2628;
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(-0.1, -1.4, -3.2);
+	glRotatef(80, 1, 0, 0);
+	glScalef(0.7, 0.6, 0.5);
+	drawSphereWithNormalSmooth(quadIndex);
+	quadIndex += 2628;
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(-0.1, -1.6, -3.5);
+	glRotatef(80, 1, 0, 0);
+	glScalef(0.7, 0.6, 0.5);
+	drawSphereWithNormalSmooth(quadIndex);
+	quadIndex += 2628;
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(-0.1, -2, -3.7);
+	glRotatef(80, 1, 0, 0);
+	glScalef(0.7, 0.6, 0.5);
+	drawSphereWithNormalSmooth(quadIndex);
+	quadIndex += 2628;
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(-0.1, -2.3, -3.7);
+	glRotatef(80, 1, 0, 0);
+	glScalef(0.7, 0.6, 0.5);
+	drawSphereWithNormalSmooth(quadIndex);
+	quadIndex += 2628;
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(-0.1, -2.6, -3.7);
+	glRotatef(80, 1, 0, 0);
+	glScalef(0.7, 0.6, 0.5);
+	drawSphereWithNormalSmooth(quadIndex);
+	quadIndex += 2628;
+	glPopMatrix();
+
+
+	glPushMatrix();
+	glTranslatef(-0.1, -2.8, -3.5);
+	glRotatef(80, 1, 0, 0);
+	glScalef(0.7, 0.6, 0.5);
+	drawSphereWithNormalSmooth(quadIndex);
+	quadIndex += 2628;
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(-0.1, -2.8, -3.3);
+	glRotatef(80, 1, 0, 0);
+	glScalef(0.7, 0.6, 0.5);
+	drawSphereWithNormalSmooth(quadIndex);
+	quadIndex += 2628;
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(-0.1, -2.6, -3.1);
+	glRotatef(80, 1, 0, 0);
+	glScalef(0.7, 0.6, 0.5);
+	drawSphereWithNormalSmooth(quadIndex);
+	quadIndex += 2628;
+	glPopMatrix();
+	
+	
+
+
+
+	quadIndexHalf = 0;
+	if (!attack) quadIndex = 0;
+	currentMaterials = &blueMaterials;
+	materials(currentMaterials);
+	/*
+	glPushMatrix();
+	glTranslatef(-0.1, -2.4, -2.5);
+	glRotatef(80, 1, 0, 0);
+	glScalef(0.7, 0.6, 0.5);
+	drawSphereWithNormalSmooth(quadIndex);
+	quadIndex += 2628;
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(-0.1, -2.2, -2.6);
+	glRotatef(80, 1, 0, 0);
+	glScalef(0.7, 0.6, 0.5);
+	drawSphereWithNormalSmooth(quadIndex);
+	quadIndex += 2628;
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(-0.1, -2, -2.8);
+	glRotatef(80, 1, 0, 0);
+	glScalef(0.7, 0.6, 0.5);
+	drawSphereWithNormalSmooth(quadIndex);
+	quadIndex += 2628;
+	glPopMatrix();*/
+
+}
+
+void bubbles() {
+	for (int i = 0; i < 10; i++) {
+		glPushMatrix();
+		glTranslatef(-1+i*.2, 1.6, 1.1);
+		glScalef(0.1, 0.1, 0.1);
+		drawSphereWithNormalSmooth(quadIndex);
+		quadIndex += 2628;
+		glPopMatrix();
+
+	}
+	quadIndex = 0;
+
+	
 }
