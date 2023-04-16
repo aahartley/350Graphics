@@ -36,6 +36,9 @@ bool sphereCam = true;
 bool fpsCam = false;
 bool rotateLights = false;
 bool animation = false;
+bool headNod = false;
+bool moveLegs = false;
+bool moveArms = false;
 GLfloat dTheta = 5, dPhi = 5, dRho = 0.5;
 GLfloat alpha = 0, beta = 0, gama = 0;
 GLfloat dAlpha = 5, dBeta = 5, dGama = 5;
@@ -655,14 +658,66 @@ void idle()
 			animation = false;
 		}
 	}
-	//if (!headUp) {
-	//	headTheta += 14.92 * increment;
-	//}
-	//if (headTheta > 10 || headUp) {
-	//	headUp = true;
-	//	headTheta -= 14.92 * increment;
-	//	if (headTheta <= 0)headUp = false;
-	//}
+	if (headNod) {
+		if (!headUp) {
+			headTheta += 14.92 * increment;
+		}
+		if (headTheta > 10 || headUp) {
+			headUp = true;
+			headTheta -= 14.92 * increment;
+			if (headTheta <= 0)headUp = false;
+		}
+	}
+	if (moveLegs) {
+		if (!leftLegUp) {
+			leftLegTheta += 14.92 * increment;
+			//sz += 0.01;
+		}
+		if (leftLegTheta > 15 || leftLegUp) {
+			leftLegUp = true;
+			//sz += 0.01;
+			leftLegTheta -= 14.92 * increment;
+			if (leftLegTheta <= -20) {
+				leftLegUp = false;
+				//sz += .01;
+			}
+		}
+
+		if (!rightLegUp) {
+			rightLegTheta += 14.92 * increment;
+			//sz += 0.01;
+		}
+		if (rightLegTheta > 15 || rightLegUp) {
+			rightLegUp = true;
+			//sz += 0.01;
+			rightLegTheta -= 14.92 * increment;
+			if (rightLegTheta <= -20) {
+				rightLegUp = false;
+				//sz += 0.01;
+			}
+		}
+	}
+	if (moveArms) {
+
+		if (!leftArmUp) {
+			leftArmTheta += 25 * increment;
+		}
+		if (leftArmTheta > 25 || leftArmUp) {
+			leftArmUp = true;
+			leftArmTheta -= 25 * increment;
+			if (leftArmTheta <= -25)leftArmUp = false;
+		}
+
+		if (!rightArmUp) {
+			rightArmTheta += 15 * increment;
+		}
+		if (rightArmTheta > 25 || rightArmUp) {
+			rightArmUp = true;
+			rightArmTheta -= 15 * increment;
+			if (rightArmTheta <= -25)rightArmUp = false;
+		}
+	}
+
 	if (animation) {
 	
 		if (walkToSpot && !cam1 && !cam2) {
@@ -675,7 +730,7 @@ void idle()
 				leftLegUp = true;
 				sz += 0.01;
 				leftLegTheta -= 14.92 * increment;
-				if (leftLegTheta <= -15) {
+				if (leftLegTheta <= -20) {
 					leftLegUp = false;
 					sz += .01;
 				}
@@ -689,28 +744,28 @@ void idle()
 				rightLegUp = true;
 				sz += 0.01;
 				rightLegTheta -= 14.92 * increment;
-				if (rightLegTheta <= -15) {
+				if (rightLegTheta <= -20) {
 					rightLegUp = false;
 					sz += 0.01;
 				}
 			}
 
 			if (!leftArmUp) {
-				leftArmTheta += 14.92 * increment;
+				leftArmTheta += 25 * increment;
 			}
-			if (leftArmTheta > 15 || leftArmUp) {
+			if (leftArmTheta > 25 || leftArmUp) {
 				leftArmUp = true;
-				leftArmTheta -= 14.92 * increment;
-				if (leftArmTheta <= -15)leftArmUp = false;
+				leftArmTheta -= 25 * increment;
+				if (leftArmTheta <= -25)leftArmUp = false;
 			}
 
 			if (!rightArmUp) {
-				rightArmTheta += 10.92 * increment;
+				rightArmTheta += 15 * increment;
 			}
-			if (rightArmTheta > 15 || rightArmUp) {
+			if (rightArmTheta > 25 || rightArmUp) {
 				rightArmUp = true;
-				rightArmTheta -= 10.92 * increment;
-				if (rightArmTheta <= -15)rightArmUp = false;
+				rightArmTheta -= 15 * increment;
+				if (rightArmTheta <= -25)rightArmUp = false;
 			}
 			if (sz >= 10) {
 				sz = 10;
@@ -798,6 +853,19 @@ void keys(unsigned char k, int xx, int yy)
 		gama += dGama * direction;
 		if (gama > 360)gama = 0;
 	}
+	else if (k == 'h' || k == 'H') {
+		if (headNod)headNod = false;
+		else
+		headNod = true;
+	}
+	else if (k == 'l' || k == 'L') {
+		if (moveLegs)moveLegs = false;
+		else moveLegs = true;
+	}
+	else if (k == 'o' || k == 'O') {
+		if (moveArms)moveArms = false;
+		else moveArms = true;
+	}
 	else if (k == 'a' || k == 'A') {
 		x += zangle * speed;
 		z -= xangle * speed;
@@ -843,9 +911,12 @@ void keys(unsigned char k, int xx, int yy)
 		beta = 0;
 		gama = 0;
 		animation = false;
-		rotateLights = false;
-		lighting(currentLighting);
-		glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
+		if (rotateLights) {
+			rotateLights = false;
+			lighting(currentLighting);
+			glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
+		}
+
 		direction = 1.0;
 		x = 0;
 		y = 2;
